@@ -70,6 +70,11 @@ class MapActivity : AppCompatActivity() {
         mapView.onPause()
     }
     
+    override fun onDestroy() {
+        super.onDestroy()
+        mapView.onDetach()
+    }
+    
     private fun showFileSelectionDialog() {
         val files = viewModel.getAllMeasurementFiles()
         
@@ -106,15 +111,22 @@ class MapActivity : AppCompatActivity() {
         
         if (measurements.isEmpty()) return
         
-        // Find min and max values for color mapping
-        val values = measurements.map { it.value }
-        val minValue = values.minOrNull() ?: 0.0
-        val maxValue = values.maxOrNull() ?: 1000.0
-        
+        // Find min and max values for color mapping and bounds in single pass
+        var minValue = Double.MAX_VALUE
+        var maxValue = -Double.MAX_VALUE
         var minLat = Double.MAX_VALUE
         var maxLat = -Double.MAX_VALUE
         var minLon = Double.MAX_VALUE
         var maxLon = -Double.MAX_VALUE
+        
+        measurements.forEach { measurement ->
+            minValue = minOf(minValue, measurement.value)
+            maxValue = maxOf(maxValue, measurement.value)
+            minLat = minOf(minLat, measurement.latitude)
+            maxLat = maxOf(maxLat, measurement.latitude)
+            minLon = minOf(minLon, measurement.longitude)
+            maxLon = maxOf(maxLon, measurement.longitude)
+        }
         
         measurements.forEach { measurement ->
             val position = GeoPoint(measurement.latitude, measurement.longitude)
@@ -138,12 +150,6 @@ class MapActivity : AppCompatActivity() {
             marker.icon = createCircleDrawable(color)
             
             mapView.overlays.add(marker)
-            
-            // Track bounds
-            minLat = minOf(minLat, measurement.latitude)
-            maxLat = maxOf(maxLat, measurement.latitude)
-            minLon = minOf(minLon, measurement.longitude)
-            maxLon = maxOf(maxLon, measurement.longitude)
         }
         
         mapView.invalidate()
