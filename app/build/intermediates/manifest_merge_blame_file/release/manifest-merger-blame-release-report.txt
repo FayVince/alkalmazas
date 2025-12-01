@@ -1,0 +1,259 @@
+1<?xml version="1.0" encoding="utf-8"?>
+2<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+3    package="com.ble.resistancemeter"
+4    android:versionCode="1"
+5    android:versionName="1.0" >
+6
+7    <uses-sdk
+8        android:minSdkVersion="21"
+9        android:targetSdkVersion="35" />
+10
+11    <!-- Bluetooth permissions -->
+12    <uses-permission
+12-->/home/runner/work/alkalmazas/alkalmazas/app/src/main/AndroidManifest.xml:6:5-7:38
+13        android:name="android.permission.BLUETOOTH"
+13-->/home/runner/work/alkalmazas/alkalmazas/app/src/main/AndroidManifest.xml:6:22-65
+14        android:maxSdkVersion="30" />
+14-->/home/runner/work/alkalmazas/alkalmazas/app/src/main/AndroidManifest.xml:7:9-35
+15    <uses-permission
+15-->/home/runner/work/alkalmazas/alkalmazas/app/src/main/AndroidManifest.xml:8:5-9:38
+16        android:name="android.permission.BLUETOOTH_ADMIN"
+16-->/home/runner/work/alkalmazas/alkalmazas/app/src/main/AndroidManifest.xml:8:22-71
+17        android:maxSdkVersion="30" />
+17-->/home/runner/work/alkalmazas/alkalmazas/app/src/main/AndroidManifest.xml:9:9-35
+18    <uses-permission
+18-->/home/runner/work/alkalmazas/alkalmazas/app/src/main/AndroidManifest.xml:10:5-12:31
+19        android:name="android.permission.BLUETOOTH_SCAN"
+19-->/home/runner/work/alkalmazas/alkalmazas/app/src/main/AndroidManifest.xml:10:22-70
+20        android:usesPermissionFlags="neverForLocation" />
+20-->/home/runner/work/alkalmazas/alkalmazas/app/src/main/AndroidManifest.xml:11:9-55
+21    <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
+21-->/home/runner/work/alkalmazas/alkalmazas/app/src/main/AndroidManifest.xml:13:5-76
+21-->/home/runner/work/alkalmazas/alkalmazas/app/src/main/AndroidManifest.xml:13:22-73
+22
+23    <!-- Location permissions -->
+24    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+24-->/home/runner/work/alkalmazas/alkalmazas/app/src/main/AndroidManifest.xml:16:5-79
+24-->/home/runner/work/alkalmazas/alkalmazas/app/src/main/AndroidManifest.xml:16:22-76
+25    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+25-->/home/runner/work/alkalmazas/alkalmazas/app/src/main/AndroidManifest.xml:17:5-81
+25-->/home/runner/work/alkalmazas/alkalmazas/app/src/main/AndroidManifest.xml:17:22-78
+26
+27    <!-- Storage permissions -->
+28    <uses-permission
+28-->/home/runner/work/alkalmazas/alkalmazas/app/src/main/AndroidManifest.xml:20:5-21:38
+29        android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+29-->/home/runner/work/alkalmazas/alkalmazas/app/src/main/AndroidManifest.xml:20:22-78
+30        android:maxSdkVersion="28" />
+30-->/home/runner/work/alkalmazas/alkalmazas/app/src/main/AndroidManifest.xml:21:9-35
+31    <uses-permission
+31-->/home/runner/work/alkalmazas/alkalmazas/app/src/main/AndroidManifest.xml:22:5-23:38
+32        android:name="android.permission.READ_EXTERNAL_STORAGE"
+32-->/home/runner/work/alkalmazas/alkalmazas/app/src/main/AndroidManifest.xml:22:22-77
+33        android:maxSdkVersion="32" />
+33-->/home/runner/work/alkalmazas/alkalmazas/app/src/main/AndroidManifest.xml:23:9-35
+34
+35    <!-- Foreground service permission for background BLE operations -->
+36    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+36-->/home/runner/work/alkalmazas/alkalmazas/app/src/main/AndroidManifest.xml:26:5-77
+36-->/home/runner/work/alkalmazas/alkalmazas/app/src/main/AndroidManifest.xml:26:22-74
+37    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION" />
+37-->/home/runner/work/alkalmazas/alkalmazas/app/src/main/AndroidManifest.xml:27:5-86
+37-->/home/runner/work/alkalmazas/alkalmazas/app/src/main/AndroidManifest.xml:27:22-83
+38
+39    <uses-feature
+39-->/home/runner/work/alkalmazas/alkalmazas/app/src/main/AndroidManifest.xml:29:5-90
+40        android:name="android.hardware.bluetooth_le"
+40-->/home/runner/work/alkalmazas/alkalmazas/app/src/main/AndroidManifest.xml:29:19-63
+41        android:required="true" />
+41-->/home/runner/work/alkalmazas/alkalmazas/app/src/main/AndroidManifest.xml:29:64-87
+42    <uses-feature android:name="android.hardware.location.gps" />
+42-->/home/runner/work/alkalmazas/alkalmazas/app/src/main/AndroidManifest.xml:30:5-66
+42-->/home/runner/work/alkalmazas/alkalmazas/app/src/main/AndroidManifest.xml:30:19-63
+43
+44    <!-- Include required permissions for Google Maps API to run. -->
+45    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+45-->[com.google.android.gms:play-services-maps:18.2.0] /home/runner/.gradle/caches/transforms-3/4f30dd9dcb010ed1e2d3fc7fb51be313/transformed/play-services-maps-18.2.0/AndroidManifest.xml:23:5-79
+45-->[com.google.android.gms:play-services-maps:18.2.0] /home/runner/.gradle/caches/transforms-3/4f30dd9dcb010ed1e2d3fc7fb51be313/transformed/play-services-maps-18.2.0/AndroidManifest.xml:23:22-76
+46    <uses-permission android:name="android.permission.INTERNET" />
+46-->[com.google.android.gms:play-services-maps:18.2.0] /home/runner/.gradle/caches/transforms-3/4f30dd9dcb010ed1e2d3fc7fb51be313/transformed/play-services-maps-18.2.0/AndroidManifest.xml:24:5-67
+46-->[com.google.android.gms:play-services-maps:18.2.0] /home/runner/.gradle/caches/transforms-3/4f30dd9dcb010ed1e2d3fc7fb51be313/transformed/play-services-maps-18.2.0/AndroidManifest.xml:24:22-64
+47
+48    <uses-feature
+48-->[com.google.android.gms:play-services-maps:18.2.0] /home/runner/.gradle/caches/transforms-3/4f30dd9dcb010ed1e2d3fc7fb51be313/transformed/play-services-maps-18.2.0/AndroidManifest.xml:26:5-28:35
+49        android:glEsVersion="0x00020000"
+49-->[com.google.android.gms:play-services-maps:18.2.0] /home/runner/.gradle/caches/transforms-3/4f30dd9dcb010ed1e2d3fc7fb51be313/transformed/play-services-maps-18.2.0/AndroidManifest.xml:27:9-41
+50        android:required="true" />
+50-->[com.google.android.gms:play-services-maps:18.2.0] /home/runner/.gradle/caches/transforms-3/4f30dd9dcb010ed1e2d3fc7fb51be313/transformed/play-services-maps-18.2.0/AndroidManifest.xml:28:9-32
+51
+52    <queries>
+52-->[com.google.android.gms:play-services-maps:18.2.0] /home/runner/.gradle/caches/transforms-3/4f30dd9dcb010ed1e2d3fc7fb51be313/transformed/play-services-maps-18.2.0/AndroidManifest.xml:30:5-34:15
+53
+54        <!-- Needs to be explicitly declared on Android R+ -->
+55        <package android:name="com.google.android.apps.maps" />
+55-->[com.google.android.gms:play-services-maps:18.2.0] /home/runner/.gradle/caches/transforms-3/4f30dd9dcb010ed1e2d3fc7fb51be313/transformed/play-services-maps-18.2.0/AndroidManifest.xml:33:9-64
+55-->[com.google.android.gms:play-services-maps:18.2.0] /home/runner/.gradle/caches/transforms-3/4f30dd9dcb010ed1e2d3fc7fb51be313/transformed/play-services-maps-18.2.0/AndroidManifest.xml:33:18-61
+56    </queries>
+57
+58    <permission
+58-->[androidx.core:core:1.12.0] /home/runner/.gradle/caches/transforms-3/556103a504031e3fd1f577718625e360/transformed/core-1.12.0/AndroidManifest.xml:22:5-24:47
+59        android:name="com.ble.resistancemeter.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
+59-->[androidx.core:core:1.12.0] /home/runner/.gradle/caches/transforms-3/556103a504031e3fd1f577718625e360/transformed/core-1.12.0/AndroidManifest.xml:23:9-81
+60        android:protectionLevel="signature" />
+60-->[androidx.core:core:1.12.0] /home/runner/.gradle/caches/transforms-3/556103a504031e3fd1f577718625e360/transformed/core-1.12.0/AndroidManifest.xml:24:9-44
+61
+62    <uses-permission android:name="com.ble.resistancemeter.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION" />
+62-->[androidx.core:core:1.12.0] /home/runner/.gradle/caches/transforms-3/556103a504031e3fd1f577718625e360/transformed/core-1.12.0/AndroidManifest.xml:26:5-97
+62-->[androidx.core:core:1.12.0] /home/runner/.gradle/caches/transforms-3/556103a504031e3fd1f577718625e360/transformed/core-1.12.0/AndroidManifest.xml:26:22-94
+63
+64    <application
+64-->/home/runner/work/alkalmazas/alkalmazas/app/src/main/AndroidManifest.xml:32:5-64:19
+65        android:allowBackup="true"
+65-->/home/runner/work/alkalmazas/alkalmazas/app/src/main/AndroidManifest.xml:33:9-35
+66        android:appComponentFactory="androidx.core.app.CoreComponentFactory"
+66-->[androidx.core:core:1.12.0] /home/runner/.gradle/caches/transforms-3/556103a504031e3fd1f577718625e360/transformed/core-1.12.0/AndroidManifest.xml:28:18-86
+67        android:extractNativeLibs="true"
+68        android:icon="@mipmap/ic_launcher"
+68-->/home/runner/work/alkalmazas/alkalmazas/app/src/main/AndroidManifest.xml:34:9-43
+69        android:label="@string/app_name"
+69-->/home/runner/work/alkalmazas/alkalmazas/app/src/main/AndroidManifest.xml:35:9-41
+70        android:roundIcon="@mipmap/ic_launcher_round"
+70-->/home/runner/work/alkalmazas/alkalmazas/app/src/main/AndroidManifest.xml:36:9-54
+71        android:supportsRtl="true"
+71-->/home/runner/work/alkalmazas/alkalmazas/app/src/main/AndroidManifest.xml:37:9-35
+72        android:theme="@style/Theme.BLEResistanceMeter" >
+72-->/home/runner/work/alkalmazas/alkalmazas/app/src/main/AndroidManifest.xml:38:9-56
+73        <meta-data
+74            android:name="com.google.android.geo.API_KEY"
+74-->/home/runner/work/alkalmazas/alkalmazas/app/src/main/AndroidManifest.xml:42:13-58
+75            android:value="YOUR_GOOGLE_MAPS_API_KEY_HERE" />
+75-->/home/runner/work/alkalmazas/alkalmazas/app/src/main/AndroidManifest.xml:43:13-44
+76
+77        <activity
+77-->/home/runner/work/alkalmazas/alkalmazas/app/src/main/AndroidManifest.xml:45:9-52:20
+78            android:name="com.ble.resistancemeter.ui.MainActivity"
+78-->/home/runner/work/alkalmazas/alkalmazas/app/src/main/AndroidManifest.xml:46:13-44
+79            android:exported="true" >
+79-->/home/runner/work/alkalmazas/alkalmazas/app/src/main/AndroidManifest.xml:47:13-36
+80            <intent-filter>
+80-->/home/runner/work/alkalmazas/alkalmazas/app/src/main/AndroidManifest.xml:48:13-51:29
+81                <action android:name="android.intent.action.MAIN" />
+81-->/home/runner/work/alkalmazas/alkalmazas/app/src/main/AndroidManifest.xml:49:17-69
+81-->/home/runner/work/alkalmazas/alkalmazas/app/src/main/AndroidManifest.xml:49:25-66
+82
+83                <category android:name="android.intent.category.LAUNCHER" />
+83-->/home/runner/work/alkalmazas/alkalmazas/app/src/main/AndroidManifest.xml:50:17-77
+83-->/home/runner/work/alkalmazas/alkalmazas/app/src/main/AndroidManifest.xml:50:27-74
+84            </intent-filter>
+85        </activity>
+86        <activity
+86-->/home/runner/work/alkalmazas/alkalmazas/app/src/main/AndroidManifest.xml:54:9-57:61
+87            android:name="com.ble.resistancemeter.ui.MapActivity"
+87-->/home/runner/work/alkalmazas/alkalmazas/app/src/main/AndroidManifest.xml:55:13-43
+88            android:exported="false"
+88-->/home/runner/work/alkalmazas/alkalmazas/app/src/main/AndroidManifest.xml:56:13-37
+89            android:parentActivityName="com.ble.resistancemeter.ui.MainActivity" />
+89-->/home/runner/work/alkalmazas/alkalmazas/app/src/main/AndroidManifest.xml:57:13-58
+90
+91        <service
+91-->/home/runner/work/alkalmazas/alkalmazas/app/src/main/AndroidManifest.xml:59:9-63:56
+92            android:name="com.ble.resistancemeter.service.MeasurementService"
+92-->/home/runner/work/alkalmazas/alkalmazas/app/src/main/AndroidManifest.xml:60:13-55
+93            android:enabled="true"
+93-->/home/runner/work/alkalmazas/alkalmazas/app/src/main/AndroidManifest.xml:61:13-35
+94            android:exported="false"
+94-->/home/runner/work/alkalmazas/alkalmazas/app/src/main/AndroidManifest.xml:62:13-37
+95            android:foregroundServiceType="location" />
+95-->/home/runner/work/alkalmazas/alkalmazas/app/src/main/AndroidManifest.xml:63:13-53
+96        <!-- Needs to be explicitly declared on P+ -->
+97        <uses-library
+97-->[com.google.android.gms:play-services-maps:18.2.0] /home/runner/.gradle/caches/transforms-3/4f30dd9dcb010ed1e2d3fc7fb51be313/transformed/play-services-maps-18.2.0/AndroidManifest.xml:39:9-41:40
+98            android:name="org.apache.http.legacy"
+98-->[com.google.android.gms:play-services-maps:18.2.0] /home/runner/.gradle/caches/transforms-3/4f30dd9dcb010ed1e2d3fc7fb51be313/transformed/play-services-maps-18.2.0/AndroidManifest.xml:40:13-50
+99            android:required="false" />
+99-->[com.google.android.gms:play-services-maps:18.2.0] /home/runner/.gradle/caches/transforms-3/4f30dd9dcb010ed1e2d3fc7fb51be313/transformed/play-services-maps-18.2.0/AndroidManifest.xml:41:13-37
+100
+101        <activity
+101-->[com.google.android.gms:play-services-base:18.1.0] /home/runner/.gradle/caches/transforms-3/ae113e36ea9644c1172eaec3a03250d9/transformed/play-services-base-18.1.0/AndroidManifest.xml:20:9-22:45
+102            android:name="com.google.android.gms.common.api.GoogleApiActivity"
+102-->[com.google.android.gms:play-services-base:18.1.0] /home/runner/.gradle/caches/transforms-3/ae113e36ea9644c1172eaec3a03250d9/transformed/play-services-base-18.1.0/AndroidManifest.xml:20:19-85
+103            android:exported="false"
+103-->[com.google.android.gms:play-services-base:18.1.0] /home/runner/.gradle/caches/transforms-3/ae113e36ea9644c1172eaec3a03250d9/transformed/play-services-base-18.1.0/AndroidManifest.xml:22:19-43
+104            android:theme="@android:style/Theme.Translucent.NoTitleBar" />
+104-->[com.google.android.gms:play-services-base:18.1.0] /home/runner/.gradle/caches/transforms-3/ae113e36ea9644c1172eaec3a03250d9/transformed/play-services-base-18.1.0/AndroidManifest.xml:21:19-78
+105
+106        <meta-data
+106-->[com.google.android.gms:play-services-basement:18.1.0] /home/runner/.gradle/caches/transforms-3/afeafa650bba9e3c892cd1c880b122cb/transformed/play-services-basement-18.1.0/AndroidManifest.xml:21:9-23:69
+107            android:name="com.google.android.gms.version"
+107-->[com.google.android.gms:play-services-basement:18.1.0] /home/runner/.gradle/caches/transforms-3/afeafa650bba9e3c892cd1c880b122cb/transformed/play-services-basement-18.1.0/AndroidManifest.xml:22:13-58
+108            android:value="@integer/google_play_services_version" />
+108-->[com.google.android.gms:play-services-basement:18.1.0] /home/runner/.gradle/caches/transforms-3/afeafa650bba9e3c892cd1c880b122cb/transformed/play-services-basement-18.1.0/AndroidManifest.xml:23:13-66
+109
+110        <provider
+110-->[androidx.emoji2:emoji2:1.2.0] /home/runner/.gradle/caches/transforms-3/3d8b5d866503218e1dbbf68a69c48cb1/transformed/emoji2-1.2.0/AndroidManifest.xml:24:9-32:20
+111            android:name="androidx.startup.InitializationProvider"
+111-->[androidx.emoji2:emoji2:1.2.0] /home/runner/.gradle/caches/transforms-3/3d8b5d866503218e1dbbf68a69c48cb1/transformed/emoji2-1.2.0/AndroidManifest.xml:25:13-67
+112            android:authorities="com.ble.resistancemeter.androidx-startup"
+112-->[androidx.emoji2:emoji2:1.2.0] /home/runner/.gradle/caches/transforms-3/3d8b5d866503218e1dbbf68a69c48cb1/transformed/emoji2-1.2.0/AndroidManifest.xml:26:13-68
+113            android:exported="false" >
+113-->[androidx.emoji2:emoji2:1.2.0] /home/runner/.gradle/caches/transforms-3/3d8b5d866503218e1dbbf68a69c48cb1/transformed/emoji2-1.2.0/AndroidManifest.xml:27:13-37
+114            <meta-data
+114-->[androidx.emoji2:emoji2:1.2.0] /home/runner/.gradle/caches/transforms-3/3d8b5d866503218e1dbbf68a69c48cb1/transformed/emoji2-1.2.0/AndroidManifest.xml:29:13-31:52
+115                android:name="androidx.emoji2.text.EmojiCompatInitializer"
+115-->[androidx.emoji2:emoji2:1.2.0] /home/runner/.gradle/caches/transforms-3/3d8b5d866503218e1dbbf68a69c48cb1/transformed/emoji2-1.2.0/AndroidManifest.xml:30:17-75
+116                android:value="androidx.startup" />
+116-->[androidx.emoji2:emoji2:1.2.0] /home/runner/.gradle/caches/transforms-3/3d8b5d866503218e1dbbf68a69c48cb1/transformed/emoji2-1.2.0/AndroidManifest.xml:31:17-49
+117            <meta-data
+117-->[androidx.lifecycle:lifecycle-process:2.7.0] /home/runner/.gradle/caches/transforms-3/67629102917b1c30db40a1fa515a63d3/transformed/lifecycle-process-2.7.0/AndroidManifest.xml:29:13-31:52
+118                android:name="androidx.lifecycle.ProcessLifecycleInitializer"
+118-->[androidx.lifecycle:lifecycle-process:2.7.0] /home/runner/.gradle/caches/transforms-3/67629102917b1c30db40a1fa515a63d3/transformed/lifecycle-process-2.7.0/AndroidManifest.xml:30:17-78
+119                android:value="androidx.startup" />
+119-->[androidx.lifecycle:lifecycle-process:2.7.0] /home/runner/.gradle/caches/transforms-3/67629102917b1c30db40a1fa515a63d3/transformed/lifecycle-process-2.7.0/AndroidManifest.xml:31:17-49
+120            <meta-data
+120-->[androidx.profileinstaller:profileinstaller:1.3.0] /home/runner/.gradle/caches/transforms-3/66d04599240015d937e90cb0ec7c485d/transformed/profileinstaller-1.3.0/AndroidManifest.xml:29:13-31:52
+121                android:name="androidx.profileinstaller.ProfileInstallerInitializer"
+121-->[androidx.profileinstaller:profileinstaller:1.3.0] /home/runner/.gradle/caches/transforms-3/66d04599240015d937e90cb0ec7c485d/transformed/profileinstaller-1.3.0/AndroidManifest.xml:30:17-85
+122                android:value="androidx.startup" />
+122-->[androidx.profileinstaller:profileinstaller:1.3.0] /home/runner/.gradle/caches/transforms-3/66d04599240015d937e90cb0ec7c485d/transformed/profileinstaller-1.3.0/AndroidManifest.xml:31:17-49
+123        </provider>
+124
+125        <receiver
+125-->[androidx.profileinstaller:profileinstaller:1.3.0] /home/runner/.gradle/caches/transforms-3/66d04599240015d937e90cb0ec7c485d/transformed/profileinstaller-1.3.0/AndroidManifest.xml:34:9-52:20
+126            android:name="androidx.profileinstaller.ProfileInstallReceiver"
+126-->[androidx.profileinstaller:profileinstaller:1.3.0] /home/runner/.gradle/caches/transforms-3/66d04599240015d937e90cb0ec7c485d/transformed/profileinstaller-1.3.0/AndroidManifest.xml:35:13-76
+127            android:directBootAware="false"
+127-->[androidx.profileinstaller:profileinstaller:1.3.0] /home/runner/.gradle/caches/transforms-3/66d04599240015d937e90cb0ec7c485d/transformed/profileinstaller-1.3.0/AndroidManifest.xml:36:13-44
+128            android:enabled="true"
+128-->[androidx.profileinstaller:profileinstaller:1.3.0] /home/runner/.gradle/caches/transforms-3/66d04599240015d937e90cb0ec7c485d/transformed/profileinstaller-1.3.0/AndroidManifest.xml:37:13-35
+129            android:exported="true"
+129-->[androidx.profileinstaller:profileinstaller:1.3.0] /home/runner/.gradle/caches/transforms-3/66d04599240015d937e90cb0ec7c485d/transformed/profileinstaller-1.3.0/AndroidManifest.xml:38:13-36
+130            android:permission="android.permission.DUMP" >
+130-->[androidx.profileinstaller:profileinstaller:1.3.0] /home/runner/.gradle/caches/transforms-3/66d04599240015d937e90cb0ec7c485d/transformed/profileinstaller-1.3.0/AndroidManifest.xml:39:13-57
+131            <intent-filter>
+131-->[androidx.profileinstaller:profileinstaller:1.3.0] /home/runner/.gradle/caches/transforms-3/66d04599240015d937e90cb0ec7c485d/transformed/profileinstaller-1.3.0/AndroidManifest.xml:40:13-42:29
+132                <action android:name="androidx.profileinstaller.action.INSTALL_PROFILE" />
+132-->[androidx.profileinstaller:profileinstaller:1.3.0] /home/runner/.gradle/caches/transforms-3/66d04599240015d937e90cb0ec7c485d/transformed/profileinstaller-1.3.0/AndroidManifest.xml:41:17-91
+132-->[androidx.profileinstaller:profileinstaller:1.3.0] /home/runner/.gradle/caches/transforms-3/66d04599240015d937e90cb0ec7c485d/transformed/profileinstaller-1.3.0/AndroidManifest.xml:41:25-88
+133            </intent-filter>
+134            <intent-filter>
+134-->[androidx.profileinstaller:profileinstaller:1.3.0] /home/runner/.gradle/caches/transforms-3/66d04599240015d937e90cb0ec7c485d/transformed/profileinstaller-1.3.0/AndroidManifest.xml:43:13-45:29
+135                <action android:name="androidx.profileinstaller.action.SKIP_FILE" />
+135-->[androidx.profileinstaller:profileinstaller:1.3.0] /home/runner/.gradle/caches/transforms-3/66d04599240015d937e90cb0ec7c485d/transformed/profileinstaller-1.3.0/AndroidManifest.xml:44:17-85
+135-->[androidx.profileinstaller:profileinstaller:1.3.0] /home/runner/.gradle/caches/transforms-3/66d04599240015d937e90cb0ec7c485d/transformed/profileinstaller-1.3.0/AndroidManifest.xml:44:25-82
+136            </intent-filter>
+137            <intent-filter>
+137-->[androidx.profileinstaller:profileinstaller:1.3.0] /home/runner/.gradle/caches/transforms-3/66d04599240015d937e90cb0ec7c485d/transformed/profileinstaller-1.3.0/AndroidManifest.xml:46:13-48:29
+138                <action android:name="androidx.profileinstaller.action.SAVE_PROFILE" />
+138-->[androidx.profileinstaller:profileinstaller:1.3.0] /home/runner/.gradle/caches/transforms-3/66d04599240015d937e90cb0ec7c485d/transformed/profileinstaller-1.3.0/AndroidManifest.xml:47:17-88
+138-->[androidx.profileinstaller:profileinstaller:1.3.0] /home/runner/.gradle/caches/transforms-3/66d04599240015d937e90cb0ec7c485d/transformed/profileinstaller-1.3.0/AndroidManifest.xml:47:25-85
+139            </intent-filter>
+140            <intent-filter>
+140-->[androidx.profileinstaller:profileinstaller:1.3.0] /home/runner/.gradle/caches/transforms-3/66d04599240015d937e90cb0ec7c485d/transformed/profileinstaller-1.3.0/AndroidManifest.xml:49:13-51:29
+141                <action android:name="androidx.profileinstaller.action.BENCHMARK_OPERATION" />
+141-->[androidx.profileinstaller:profileinstaller:1.3.0] /home/runner/.gradle/caches/transforms-3/66d04599240015d937e90cb0ec7c485d/transformed/profileinstaller-1.3.0/AndroidManifest.xml:50:17-95
+141-->[androidx.profileinstaller:profileinstaller:1.3.0] /home/runner/.gradle/caches/transforms-3/66d04599240015d937e90cb0ec7c485d/transformed/profileinstaller-1.3.0/AndroidManifest.xml:50:25-92
+142            </intent-filter>
+143        </receiver>
+144    </application>
+145
+146</manifest>

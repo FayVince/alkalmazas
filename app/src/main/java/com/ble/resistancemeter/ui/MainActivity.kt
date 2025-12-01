@@ -103,15 +103,15 @@ class MainActivity : AppCompatActivity() {
             when (state) {
                 BleRepository.ConnectionState.DISCONNECTED -> {
                     binding.textConnectionStatus.text = getString(R.string.disconnected)
-                    binding.textConnectionStatus.setTextColor(getColor(R.color.red))
+                    binding.textConnectionStatus.setTextColor(ContextCompat.getColor(this, R.color.red))
                 }
                 BleRepository.ConnectionState.CONNECTING -> {
                     binding.textConnectionStatus.text = getString(R.string.connecting)
-                    binding.textConnectionStatus.setTextColor(getColor(R.color.orange))
+                    binding.textConnectionStatus.setTextColor(ContextCompat.getColor(this, R.color.orange))
                 }
                 BleRepository.ConnectionState.CONNECTED -> {
                     binding.textConnectionStatus.text = getString(R.string.connected)
-                    binding.textConnectionStatus.setTextColor(getColor(R.color.green))
+                    binding.textConnectionStatus.setTextColor(ContextCompat.getColor(this, R.color.green))
                 }
             }
         }

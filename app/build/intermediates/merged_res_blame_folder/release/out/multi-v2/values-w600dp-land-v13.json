@@ -1,0 +1,19 @@
+{
+    "logs": [
+        {
+            "outputFile": "com.ble.resistancemeter.app-mergeReleaseResources-39:/values-w600dp-land-v13/values-w600dp-land-v13.xml",
+            "map": [
+                {
+                    "source": "/home/runner/.gradle/caches/transforms-3/b7b4d2a4624f3c7e7be1bfffecfed9aa/transformed/material-1.11.0/res/values-w600dp-land-v13/values-w600dp-land-v13.xml",
+                    "from": {
+                        "startLines": "2",
+                        "startColumns": "4",
+                        "startOffsets": "55",
+                        "endColumns": "54",
+                        "endOffsets": "105"
+                    }
+                }
+            ]
+        }
+    ]
+}
