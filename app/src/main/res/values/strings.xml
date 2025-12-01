@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">BLE Resistance Meter</string>
+    <string name="current_value">Current Value (A)</string>
+    <string name="n_parameter">N Parameter (1-99)</string>
+    <string name="b_parameter">B Parameter (1-999 sec)</string>
+    <string name="start_measurement">Start Measurement</string>
+    <string name="stop_measurement">Stop Measurement</string>
+    <string name="connection_status">Connection Status</string>
+    <string name="disconnected">Disconnected</string>
+    <string name="connected">Connected</string>
+    <string name="connecting">Connecting...</string>
+    <string name="demo_mode">Demo Mode</string>
+    <string name="view_map">View Map</string>
+    <string name="ble_connect">Connect BLE Device</string>
+    <string name="ble_disconnect">Disconnect</string>
+    <string name="load_file">Load File</string>
+    <string name="resistance_map">Resistance Map</string>
+    <string name="select_file">Select Measurement File</string>
+</resources>
