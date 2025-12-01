@@ -14,7 +14,6 @@ import com.ble.resistancemeter.repository.FileRepository
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.collect
 import java.text.SimpleDateFormat
 import java.util.*
 
