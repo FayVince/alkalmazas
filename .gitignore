@@ -8,3 +8,17 @@ local.properties
 /captures
 .externalNativeBuild
 .cxx
+app/build/
+build/
+*.apk
+*.ap_
+*.dex
+*.class
+bin/
+gen/
+out/
+.navigation/
+captures/
+output.json
+*.jks
+*.keystore
