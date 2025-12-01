@@ -1,7 +1,6 @@
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
-    id("com.google.android.libraries.mapsplatform.secrets-gradle-plugin")
 }
 
 android {
@@ -54,8 +53,9 @@ dependencies {
     // Location services
     implementation("com.google.android.gms:play-services-location:21.1.0")
     
-    // Google Maps
-    implementation("com.google.android.gms:play-services-maps:18.2.0")
+    // OpenStreetMap
+    implementation("org.osmdroid:osmdroid-android:6.1.18")
+    implementation("org.osmdroid:osmdroid-wms:6.1.18")
     
     // JSON serialization
     implementation("com.google.code.gson:gson:2.10.1")
