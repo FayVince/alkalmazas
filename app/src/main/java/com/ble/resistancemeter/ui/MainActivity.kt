@@ -33,7 +33,7 @@ class MainActivity : AppCompatActivity() {
     private val demoRunnable = object : Runnable {
         override fun run() {
             if (isDemoMode) {
-                // Generate random resistance value (500-2000 ohm range)
+                // Generate random resistance value (500-2000 ohms range)
                 val randomValue = Random.nextInt(500, 2000)
                 // Send to service
                 val intent = Intent(this@MainActivity, MeasurementService::class.java).apply {
@@ -90,7 +90,7 @@ class MainActivity : AppCompatActivity() {
     
     override fun onDestroy() {
         super.onDestroy()
-        demoHandler.removeCallbacks(demoRunnable)
+        stopDemoGeneration()
         unregisterReceiver(aValueReceiver)
     }
     
@@ -98,14 +98,22 @@ class MainActivity : AppCompatActivity() {
         super.onResume()
         // Restart demo mode if it was enabled
         if (isDemoMode) {
-            demoHandler.removeCallbacks(demoRunnable)
-            demoHandler.post(demoRunnable)
+            startDemoGeneration()
         }
     }
     
     override fun onPause() {
         super.onPause()
         // Stop demo mode when paused to save battery
+        stopDemoGeneration()
+    }
+    
+    private fun startDemoGeneration() {
+        demoHandler.removeCallbacks(demoRunnable)
+        demoHandler.post(demoRunnable)
+    }
+    
+    private fun stopDemoGeneration() {
         demoHandler.removeCallbacks(demoRunnable)
     }
     
@@ -199,9 +207,9 @@ class MainActivity : AppCompatActivity() {
             
             // Start or stop demo data generation
             if (isDemoMode) {
-                demoHandler.post(demoRunnable)
+                startDemoGeneration()
             } else {
-                demoHandler.removeCallbacks(demoRunnable)
+                stopDemoGeneration()
             }
             
             // Also update ViewModel for backward compatibility
