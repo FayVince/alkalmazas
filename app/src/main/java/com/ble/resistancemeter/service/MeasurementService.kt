@@ -187,7 +187,7 @@ class MeasurementService : Service() {
         if (paramsChanged) {
             // Log parameter change
             val timestamp = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.getDefault()).format(Date())
-            val paramChange = ParameterChange(timestamp, nValue, bValue)
+            val paramChange = ParameterChange(timestamp, nValue, B = bValue)
             measurementData?.parameterChanges?.add(paramChange)
             flushSessionFile()
             
@@ -210,7 +210,7 @@ class MeasurementService : Service() {
         measurementData = MeasurementData(startTime = timestamp)
         
         // Add initial parameter values
-        val paramChange = ParameterChange(timestamp, nValue, bValue)
+        val paramChange = ParameterChange(timestamp, nValue, B = bValue)
         measurementData?.parameterChanges?.add(paramChange)
         
         flushSessionFile()
@@ -294,8 +294,7 @@ class MeasurementService : Service() {
         val measurement = if (location != null) {
             Measurement(timestamp, aValue, location.latitude, location.longitude)
         } else {
-            // No valid location available, record with 0.0 coordinates
-            // (requirements say null coords, but data class uses Double, so using 0.0)
+            // No valid location available - using 0.0 as placeholder since data class uses non-null Double
             Measurement(timestamp, aValue, 0.0, 0.0)
         }
         
