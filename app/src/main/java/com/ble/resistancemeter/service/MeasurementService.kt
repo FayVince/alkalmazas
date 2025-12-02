@@ -40,6 +40,7 @@ class MeasurementService : Service() {
         const val ACTION_STOP = "com.ble.resistancemeter.action.STOP"
         const val ACTION_UPDATE_PARAMS = "com.ble.resistancemeter.action.UPDATE_PARAMS"
         const val ACTION_A_UPDATE = "com.ble.resistancemeter.action.A_UPDATE"
+        const val ACTION_BLE_DATA = "com.fayvince.alkalmazas.action.BLE_DATA"
         
         const val EXTRA_N = "extra_n"
         const val EXTRA_B = "extra_b"
@@ -95,6 +96,10 @@ class MeasurementService : Service() {
             ACTION_START -> startMeasurement()
             ACTION_STOP -> stopMeasurement()
             ACTION_UPDATE_PARAMS -> updateParameters(intent)
+            ACTION_BLE_DATA -> {
+                val rawValue = intent.getIntExtra("raw_value", 0)
+                onBleMeasurement(rawValue)
+            }
         }
         
         return START_NOT_STICKY

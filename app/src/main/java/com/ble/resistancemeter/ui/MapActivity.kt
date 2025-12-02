@@ -34,6 +34,8 @@ class MapActivity : AppCompatActivity() {
         binding = ActivityMapBinding.inflate(layoutInflater)
         setContentView(binding.root)
         
+        // Set up toolbar
+        setSupportActionBar(binding.toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         supportActionBar?.title = getString(R.string.resistance_map)
         
@@ -55,7 +57,7 @@ class MapActivity : AppCompatActivity() {
             loadAndDisplayFile(files.first())
         }
         
-        binding.buttonLoadFile.setOnClickListener {
+        binding.fabLoadFile.setOnClickListener {
             showFileSelectionDialog()
         }
     }
