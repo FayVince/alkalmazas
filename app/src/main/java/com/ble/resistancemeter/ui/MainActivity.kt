@@ -5,6 +5,8 @@ import android.content.*
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
@@ -15,6 +17,7 @@ import com.ble.resistancemeter.databinding.ActivityMainBinding
 import com.ble.resistancemeter.repository.BleRepository
 import com.ble.resistancemeter.service.MeasurementService
 import com.ble.resistancemeter.viewmodel.MeasurementViewModel
+import kotlin.random.Random
 
 class MainActivity : AppCompatActivity() {
     
@@ -23,6 +26,25 @@ class MainActivity : AppCompatActivity() {
     private lateinit var sharedPreferences: SharedPreferences
     
     private var isServiceRunning = false
+    private var isDemoMode = false
+    
+    private val demoHandler = Handler(Looper.getMainLooper())
+    
+    private val demoRunnable = object : Runnable {
+        override fun run() {
+            if (isDemoMode) {
+                // Generate random resistance value (500-2000 ohms range)
+                val randomValue = Random.nextInt(500, 2000)
+                // Send to service
+                val intent = Intent(this@MainActivity, MeasurementService::class.java).apply {
+                    action = MeasurementService.ACTION_BLE_DATA
+                    putExtra(MeasurementService.EXTRA_RAW_VALUE, randomValue)
+                }
+                startService(intent)
+                demoHandler.postDelayed(this, 1000) // every second
+            }
+        }
+    }
     
     private val requestPermissionsLauncher = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
@@ -47,6 +69,10 @@ class MainActivity : AppCompatActivity() {
         
         sharedPreferences = getSharedPreferences("settings", Context.MODE_PRIVATE)
         
+        // Load demo mode state
+        isDemoMode = sharedPreferences.getBoolean("demo_mode", false)
+        binding.switchDemoMode.isChecked = isDemoMode
+        
         requestPermissions()
         setupObservers()
         setupListeners()
@@ -64,7 +90,31 @@ class MainActivity : AppCompatActivity() {
     
     override fun onDestroy() {
         super.onDestroy()
+        stopDemoGeneration()
         unregisterReceiver(aValueReceiver)
+    }
+    
+    override fun onResume() {
+        super.onResume()
+        // Restart demo mode if it was enabled
+        if (isDemoMode) {
+            startDemoGeneration()
+        }
+    }
+    
+    override fun onPause() {
+        super.onPause()
+        // Stop demo mode when paused to save battery
+        stopDemoGeneration()
+    }
+    
+    private fun startDemoGeneration() {
+        demoHandler.removeCallbacks(demoRunnable)
+        demoHandler.post(demoRunnable)
+    }
+    
+    private fun stopDemoGeneration() {
+        demoHandler.removeCallbacks(demoRunnable)
     }
     
     private fun requestPermissions() {
@@ -134,10 +184,6 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         }
-        
-        viewModel.demoMode.observe(this) { enabled ->
-            binding.switchDemoMode.isChecked = enabled
-        }
     }
     
     private fun setupListeners() {
@@ -155,6 +201,18 @@ class MainActivity : AppCompatActivity() {
         }
         
         binding.switchDemoMode.setOnCheckedChangeListener { _, isChecked ->
+            isDemoMode = isChecked
+            // Save demo mode state
+            sharedPreferences.edit().putBoolean("demo_mode", isDemoMode).apply()
+            
+            // Start or stop demo data generation
+            if (isDemoMode) {
+                startDemoGeneration()
+            } else {
+                stopDemoGeneration()
+            }
+            
+            // Also update ViewModel for backward compatibility
             viewModel.toggleDemoMode(isChecked)
         }
     }
@@ -266,12 +324,11 @@ class MainActivity : AppCompatActivity() {
             binding.buttonStartStop.text = getString(R.string.stop_measurement)
             binding.editTextN.isEnabled = false
             binding.editTextB.isEnabled = false
-            binding.switchDemoMode.isEnabled = false
+            // Don't disable demo mode switch - it should work independently
         } else {
             binding.buttonStartStop.text = getString(R.string.start_measurement)
             binding.editTextN.isEnabled = true
             binding.editTextB.isEnabled = true
-            binding.switchDemoMode.isEnabled = true
         }
     }
 }
