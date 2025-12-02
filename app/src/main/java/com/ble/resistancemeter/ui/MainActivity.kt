@@ -209,8 +209,10 @@ class MainActivity : AppCompatActivity() {
         
         // Send parameter update to service if running
         if (isServiceRunning) {
-            val b = binding.editTextB.text.toString().toIntOrNull() ?: 5
-            sendParametersToService(value, b)
+            val b = validateBValue()
+            if (b != null) {
+                sendParametersToService(value, b)
+            }
         }
         
         return value
@@ -229,11 +231,25 @@ class MainActivity : AppCompatActivity() {
         
         // Send parameter update to service if running
         if (isServiceRunning) {
-            val n = binding.editTextN.text.toString().toIntOrNull() ?: 10
-            sendParametersToService(n, value)
+            val n = validateNValue()
+            if (n != null) {
+                sendParametersToService(n, value)
+            }
         }
         
         return value
+    }
+    
+    private fun validateNValue(): Int? {
+        val text = binding.editTextN.text.toString()
+        val value = text.toIntOrNull()
+        return if (value != null && value in 1..99) value else null
+    }
+    
+    private fun validateBValue(): Int? {
+        val text = binding.editTextB.text.toString()
+        val value = text.toIntOrNull()
+        return if (value != null && value in 1..999) value else null
     }
     
     private fun sendParametersToService(n: Int, b: Int) {

@@ -34,6 +34,7 @@ class MeasurementService : Service() {
     companion object {
         private const val CHANNEL_ID = "measurement_channel"
         private const val NOTIF_ID = 1
+        private const val MAX_BUFFER_SIZE = 99
         
         const val ACTION_START = "com.ble.resistancemeter.action.START"
         const val ACTION_STOP = "com.ble.resistancemeter.action.STOP"
@@ -262,8 +263,8 @@ class MeasurementService : Service() {
         // Add to buffer
         sampleBuffer.addLast(rawValue)
         
-        // Limit buffer to max 99 samples
-        while (sampleBuffer.size > 99) {
+        // Limit buffer to max size
+        while (sampleBuffer.size > MAX_BUFFER_SIZE) {
             sampleBuffer.removeFirst()
         }
         
@@ -294,7 +295,8 @@ class MeasurementService : Service() {
         val measurement = if (location != null) {
             Measurement(timestamp, aValue, location.latitude, location.longitude)
         } else {
-            // No valid location available - using 0.0 as placeholder since data class uses non-null Double
+            // No valid GPS location obtained yet - using 0.0/0.0 as placeholder
+            // Note: Incoming 0/0 coords from GPS are ignored (see locationCallback)
             Measurement(timestamp, aValue, 0.0, 0.0)
         }
         
