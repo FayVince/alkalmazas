@@ -1,11 +1,10 @@
 package com.ble.resistancemeter.ui
 
 import android.Manifest
-import android.content.Intent
+import android.content.*
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
-import android.widget.SeekBar
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
@@ -14,12 +13,16 @@ import androidx.core.content.ContextCompat
 import com.ble.resistancemeter.R
 import com.ble.resistancemeter.databinding.ActivityMainBinding
 import com.ble.resistancemeter.repository.BleRepository
+import com.ble.resistancemeter.service.MeasurementService
 import com.ble.resistancemeter.viewmodel.MeasurementViewModel
 
 class MainActivity : AppCompatActivity() {
     
     private lateinit var binding: ActivityMainBinding
     private val viewModel: MeasurementViewModel by viewModels()
+    private lateinit var sharedPreferences: SharedPreferences
+    
+    private var isServiceRunning = false
     
     private val requestPermissionsLauncher = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
@@ -30,14 +33,37 @@ class MainActivity : AppCompatActivity() {
         }
     }
     
+    private val aValueReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            val aValue = intent?.getDoubleExtra(MeasurementService.EXTRA_A_VALUE, 0.0) ?: 0.0
+            binding.textCurrentValue.text = String.format("%.1f", aValue)
+        }
+    }
+    
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
         
+        sharedPreferences = getSharedPreferences("settings", Context.MODE_PRIVATE)
+        
         requestPermissions()
         setupObservers()
         setupListeners()
+        loadParameters()
+        
+        // Register broadcast receiver for A value updates
+        val filter = IntentFilter(MeasurementService.ACTION_A_UPDATE)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            registerReceiver(aValueReceiver, filter, Context.RECEIVER_NOT_EXPORTED)
+        } else {
+            registerReceiver(aValueReceiver, filter)
+        }
+    }
+    
+    override fun onDestroy() {
+        super.onDestroy()
+        unregisterReceiver(aValueReceiver)
     }
     
     private fun requestPermissions() {
@@ -61,6 +87,11 @@ class MainActivity : AppCompatActivity() {
             permissions.add(Manifest.permission.WRITE_EXTERNAL_STORAGE)
         }
         
+        // Notification permission for Android 13+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            permissions.add(Manifest.permission.POST_NOTIFICATIONS)
+        }
+        
         val permissionsToRequest = permissions.filter {
             ContextCompat.checkSelfPermission(this, it) != PackageManager.PERMISSION_GRANTED
         }
@@ -70,32 +101,19 @@ class MainActivity : AppCompatActivity() {
         }
     }
     
+    private fun loadParameters() {
+        val n = sharedPreferences.getInt("n_value", 10)
+        val b = sharedPreferences.getInt("b_value", 5)
+        
+        binding.editTextN.setText(n.toString())
+        binding.editTextB.setText(b.toString())
+    }
+    
     private fun setupObservers() {
         viewModel.currentAValue.observe(this) { value ->
-            binding.textCurrentValue.text = String.format("%.1f", value)
-        }
-        
-        viewModel.nValue.observe(this) { value ->
-            binding.textNValue.text = value.toString()
-            binding.seekBarN.progress = value - 1
-        }
-        
-        viewModel.bValue.observe(this) { value ->
-            binding.textBValue.text = value.toString()
-            binding.seekBarB.progress = value - 1
-        }
-        
-        viewModel.isRunning.observe(this) { running ->
-            if (running) {
-                binding.buttonStartStop.text = getString(R.string.stop_measurement)
-                binding.seekBarN.isEnabled = false
-                binding.seekBarB.isEnabled = false
-                binding.switchDemoMode.isEnabled = false
-            } else {
-                binding.buttonStartStop.text = getString(R.string.start_measurement)
-                binding.seekBarN.isEnabled = true
-                binding.seekBarB.isEnabled = true
-                binding.switchDemoMode.isEnabled = true
+            // This is kept for backward compatibility with demo mode in ViewModel
+            if (!isServiceRunning) {
+                binding.textCurrentValue.text = String.format("%.1f", value)
             }
         }
         
@@ -122,33 +140,11 @@ class MainActivity : AppCompatActivity() {
     }
     
     private fun setupListeners() {
-        binding.seekBarN.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
-            override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
-                if (fromUser) {
-                    viewModel.setNValue(progress + 1)
-                }
-            }
-            
-            override fun onStartTrackingTouch(seekBar: SeekBar?) {}
-            override fun onStopTrackingTouch(seekBar: SeekBar?) {}
-        })
-        
-        binding.seekBarB.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
-            override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
-                if (fromUser) {
-                    viewModel.setBValue(progress + 1)
-                }
-            }
-            
-            override fun onStartTrackingTouch(seekBar: SeekBar?) {}
-            override fun onStopTrackingTouch(seekBar: SeekBar?) {}
-        })
-        
         binding.buttonStartStop.setOnClickListener {
-            if (viewModel.isRunning.value == true) {
-                viewModel.stopMeasurement()
+            if (isServiceRunning) {
+                stopMeasurementService()
             } else {
-                viewModel.startMeasurement()
+                startMeasurementService()
             }
         }
         
@@ -159,6 +155,106 @@ class MainActivity : AppCompatActivity() {
         
         binding.switchDemoMode.setOnCheckedChangeListener { _, isChecked ->
             viewModel.toggleDemoMode(isChecked)
+        }
+    }
+    
+    private fun startMeasurementService() {
+        // Validate and save parameters
+        val n = validateAndSaveN()
+        val b = validateAndSaveB()
+        
+        if (n == null || b == null) {
+            return
+        }
+        
+        // Start the service
+        val intent = Intent(this, MeasurementService::class.java).apply {
+            action = MeasurementService.ACTION_START
+        }
+        
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            startForegroundService(intent)
+        } else {
+            startService(intent)
+        }
+        
+        isServiceRunning = true
+        updateUIForRunningState(true)
+        
+        // Send initial parameters to service
+        sendParametersToService(n, b)
+    }
+    
+    private fun stopMeasurementService() {
+        val intent = Intent(this, MeasurementService::class.java).apply {
+            action = MeasurementService.ACTION_STOP
+        }
+        startService(intent)
+        
+        isServiceRunning = false
+        updateUIForRunningState(false)
+    }
+    
+    private fun validateAndSaveN(): Int? {
+        val text = binding.editTextN.text.toString()
+        val value = text.toIntOrNull()
+        
+        if (value == null || value !in 1..99) {
+            Toast.makeText(this, "N must be between 1 and 99", Toast.LENGTH_SHORT).show()
+            return null
+        }
+        
+        sharedPreferences.edit().putInt("n_value", value).apply()
+        
+        // Send parameter update to service if running
+        if (isServiceRunning) {
+            val b = binding.editTextB.text.toString().toIntOrNull() ?: 5
+            sendParametersToService(value, b)
+        }
+        
+        return value
+    }
+    
+    private fun validateAndSaveB(): Int? {
+        val text = binding.editTextB.text.toString()
+        val value = text.toIntOrNull()
+        
+        if (value == null || value !in 1..999) {
+            Toast.makeText(this, "B must be between 1 and 999", Toast.LENGTH_SHORT).show()
+            return null
+        }
+        
+        sharedPreferences.edit().putInt("b_value", value).apply()
+        
+        // Send parameter update to service if running
+        if (isServiceRunning) {
+            val n = binding.editTextN.text.toString().toIntOrNull() ?: 10
+            sendParametersToService(n, value)
+        }
+        
+        return value
+    }
+    
+    private fun sendParametersToService(n: Int, b: Int) {
+        val intent = Intent(this, MeasurementService::class.java).apply {
+            action = MeasurementService.ACTION_UPDATE_PARAMS
+            putExtra(MeasurementService.EXTRA_N, n)
+            putExtra(MeasurementService.EXTRA_B, b)
+        }
+        startService(intent)
+    }
+    
+    private fun updateUIForRunningState(running: Boolean) {
+        if (running) {
+            binding.buttonStartStop.text = getString(R.string.stop_measurement)
+            binding.editTextN.isEnabled = false
+            binding.editTextB.isEnabled = false
+            binding.switchDemoMode.isEnabled = false
+        } else {
+            binding.buttonStartStop.text = getString(R.string.start_measurement)
+            binding.editTextN.isEnabled = true
+            binding.editTextB.isEnabled = true
+            binding.switchDemoMode.isEnabled = true
         }
     }
 }
