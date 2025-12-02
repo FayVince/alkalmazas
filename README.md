@@ -24,10 +24,50 @@ Android alkalmazás amely Bluetooth LE-n keresztül fogad ellenállás mérési 
 ## Használat
 
 ### Főképernyő
-- **N paraméter**: 1-99 közötti érték - hány mérést átlagolja
-- **B paraméter**: 1-999 közötti érték másodpercben - milyen gyakran menti az átlagot
+- **N paraméter**: 1-99 közötti érték - hány mérést átlagolja (billentyűzettel szerkeszthető)
+- **B paraméter**: 1-999 közötti érték másodpercben - milyen gyakran menti az átlagot (billentyűzettel szerkeszthető)
 - **Demo Mode**: Kapcsoló a szimulált adatok generálásához
 - **Start/Stop**: Mérés indítása/megállítása
+
+### MeasurementService (Háttérszolgáltatás)
+- **Előtérszolgáltatás**: Folyamatos értesítéssel és GPS frissítéssel fut
+- **Értesítés**: "Kesztyű mérés fut" címmel, futási időt mutatja másodpercekben
+- **GPS frissítés**: ~1 másodpercenként kéri a helyadatokat
+- **Helyadat kezelés**: 0/0 koordinátákat ignorálja, utolsó érvényes pozíciót használja
+- **Mozgó átlag**: Max 99 mintát tárol ArrayDeque-ban
+- **Paraméter változások**: N és B értékek futás közben is módosíthatók, JSON-ba logolva
+
+### BLE Integráció
+A BLE kód a következő módon hívhatja meg a `MeasurementService.onBleMeasurement(rawValue: Int)` metódust:
+
+**1. Broadcast Intent módszer (ajánlott):**
+```kotlin
+// BLE Repository vagy Service-ben BLE mérés érkezésekor
+val intent = Intent("com.ble.resistancemeter.action.BLE_MEASUREMENT")
+intent.setPackage(packageName)
+intent.putExtra("raw_value", rawValue)
+sendBroadcast(intent)
+
+// Megjegyzés: A service-nek implementálnia kell a BroadcastReceiver-t
+// az onBleMeasurement() metódus meghívásához
+```
+
+**2. Service Binding módszer:**
+```kotlin
+// Ha a MeasurementService implementál egy Binder interface-t,
+// akkor a BLE kód bind-olhat hozzá és közvetlenül hívhatja
+// az onBleMeasurement() metódust
+// (Jelenleg nincs implementálva, de könnyen hozzáadható)
+```
+
+**3. Demo/Teszt módszer:**
+```kotlin
+// Demo módban direkt hívás szimulált adatokkal
+// A UI demo kapcsoló esetén a ViewModel generál véletlen értékeket
+```
+
+**Megjegyzés**: Az integrátor dönti el, melyik módszert használja.
+A service binding hatékonyabb, de a broadcast intent egyszerűbb implementálni.
 
 ### Térkép képernyő
 - Megjeleníti a mérési pontokat
