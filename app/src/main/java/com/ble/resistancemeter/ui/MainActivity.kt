@@ -71,6 +71,7 @@ class MainActivity : AppCompatActivity() {
         
         // Load demo mode state
         isDemoMode = sharedPreferences.getBoolean("demo_mode", false)
+        binding.switchDemoMode.isChecked = isDemoMode
         
         requestPermissions()
         setupObservers()
@@ -174,11 +175,6 @@ class MainActivity : AppCompatActivity() {
                     binding.textConnectionStatus.setTextColor(ContextCompat.getColor(this, R.color.green))
                 }
             }
-        }
-        
-        viewModel.demoMode.observe(this) { enabled ->
-            // Sync switch with saved state on first load
-            binding.switchDemoMode.isChecked = isDemoMode
         }
     }
     
