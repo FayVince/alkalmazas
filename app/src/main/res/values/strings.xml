@@ -17,4 +17,10 @@
     <string name="load_file">Load File</string>
     <string name="resistance_map">Resistance Map</string>
     <string name="select_file">Select Measurement File</string>
+    <string name="resistance_legend">Resistance Legend</string>
+    <string name="color_gradient">Color Gradient</string>
+    <string name="min_label">Min</string>
+    <string name="max_label">Max</string>
+    <string name="share_file">Share File</string>
+    <string name="elapsed_time">Elapsed Time: %s</string>
 </resources>

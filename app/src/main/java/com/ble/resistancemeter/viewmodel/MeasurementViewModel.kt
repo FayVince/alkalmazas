@@ -8,12 +8,15 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import com.ble.resistancemeter.data.Measurement
+import com.ble.resistancemeter.data.MeasurementData
 import com.ble.resistancemeter.data.ParameterChange
 import com.ble.resistancemeter.repository.BleRepository
 import com.ble.resistancemeter.repository.FileRepository
+import com.ble.resistancemeter.service.MeasurementService
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import kotlinx.coroutines.*
+import java.io.File
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -216,6 +219,27 @@ class MeasurementViewModel(application: Application) : AndroidViewModel(applicat
         fileRepository.addParameterChange(parameterChange)
     }
     
+    fun saveMeasurementData(callback: (String?) -> Unit) {
+        viewModelScope.launch {
+            val measurements = MeasurementService.getMeasurements().toMutableList()
+            if (measurements.isNotEmpty()) {
+                val parameterChanges = MeasurementService.getParameterChanges().toMutableList()
+                val startTime = MeasurementService.getStartTime()
+                
+                val measurementData = MeasurementData(
+                    startTime = startTime,
+                    measurements = measurements,
+                    parameterChanges = parameterChanges
+                )
+                
+                val fileName = fileRepository.saveMeasurementData(measurementData)
+                callback(fileName)
+            } else {
+                callback(null)
+            }
+        }
+    }
+    
     fun connectToDevice(device: android.bluetooth.BluetoothDevice) {
         bleRepository.connectToDevice(device)
         _demoMode.value = false
@@ -225,9 +249,9 @@ class MeasurementViewModel(application: Application) : AndroidViewModel(applicat
         bleRepository.disconnect()
     }
     
-    fun getAllMeasurementFiles() = fileRepository.getAllMeasurementFiles()
+    fun getAllMeasurementFiles(): List<File> = fileRepository.getAllMeasurementFiles()
     
-    fun loadMeasurementFile(file: java.io.File) = fileRepository.loadFile(file)
+    fun loadMeasurementFile(file: File): MeasurementData? = fileRepository.loadFile(file)
     
     override fun onCleared() {
         super.onCleared()

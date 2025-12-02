@@ -62,6 +62,33 @@ class FileRepository(private val context: Context) {
             e.printStackTrace()
         }
     }
+
+    fun saveMeasurementData(measurementData: MeasurementData): String? {
+        val dateFormat = SimpleDateFormat("yyyy_MM_dd_HH_mm_ss", Locale.getDefault())
+        val currentDate = dateFormat.format(Date())
+        val fileName = "${currentDate}_GPS.json"
+
+        val documentsDir = File(
+            Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS),
+            "BLEResistanceMeter"
+        )
+
+        if (!documentsDir.exists()) {
+            documentsDir.mkdirs()
+        }
+
+        val file = File(documentsDir, fileName)
+
+        return try {
+            FileWriter(file).use { writer ->
+                gson.toJson(measurementData, writer)
+            }
+            fileName
+        } catch (e: Exception) {
+            e.printStackTrace()
+            null
+        }
+    }
     
     fun loadFile(file: File): MeasurementData? {
         return try {

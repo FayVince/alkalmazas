@@ -41,11 +41,21 @@ class MeasurementService : Service() {
         const val ACTION_UPDATE_PARAMS = "com.ble.resistancemeter.action.UPDATE_PARAMS"
         const val ACTION_A_UPDATE = "com.ble.resistancemeter.action.A_UPDATE"
         const val ACTION_BLE_DATA = "com.fayvince.alkalmazas.action.BLE_DATA"
+        const val ACTION_ELAPSED_TIME_UPDATE = "com.ble.resistancemeter.action.ELAPSED_TIME_UPDATE"
         
         const val EXTRA_N = "extra_n"
         const val EXTRA_B = "extra_b"
         const val EXTRA_A_VALUE = "extra_a_value"
         const val EXTRA_RAW_VALUE = "raw_value"
+        const val EXTRA_ELAPSED_TIME = "extra_elapsed_time"
+
+        private val measurements = mutableListOf<Measurement>()
+        private val parameterChanges = mutableListOf<ParameterChange>()
+        private var startTime: String = ""
+
+        fun getMeasurements(): List<Measurement> = measurements
+        fun getParameterChanges(): List<ParameterChange> = parameterChanges
+        fun getStartTime(): String = startTime
     }
     
     private lateinit var fusedLocationClient: FusedLocationProviderClient
@@ -63,13 +73,14 @@ class MeasurementService : Service() {
     private var measurementData: MeasurementData? = null
     private var sessionFile: File? = null
     
-    private var startTime = 0L
+    private var startTimeMillis = 0L
     private val updateHandler = Handler(Looper.getMainLooper())
     private val saveHandler = Handler(Looper.getMainLooper())
     
     private val notificationUpdateRunnable = object : Runnable {
         override fun run() {
             updateNotification()
+            broadcastElapsedTime()
             updateHandler.postDelayed(this, 1000)
         }
     }
@@ -149,8 +160,11 @@ class MeasurementService : Service() {
     }
     
     private fun startMeasurement() {
-        startTime = System.currentTimeMillis()
+        startTimeMillis = System.currentTimeMillis()
         sampleBuffer.clear()
+        measurements.clear()
+        parameterChanges.clear()
+        startTime = ""
         
         createSessionFile()
         startLocationUpdates()
@@ -196,6 +210,7 @@ class MeasurementService : Service() {
             val timestamp = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.getDefault()).format(Date())
             val paramChange = ParameterChange(timestamp, nValue, B = bValue)
             measurementData?.parameterChanges?.add(paramChange)
+            parameterChanges.add(paramChange)
             flushSessionFile()
             
             // Restart save timer with new B value
@@ -214,12 +229,14 @@ class MeasurementService : Service() {
         sessionFile = File(documentsDir, fileName)
         
         val timestamp = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.getDefault()).format(Date())
+        startTime = timestamp
         measurementData = MeasurementData(startTime = timestamp)
         
         // Add initial parameter values
         val paramChange = ParameterChange(timestamp, nValue, B = bValue)
         measurementData?.parameterChanges?.add(paramChange)
-        
+        parameterChanges.add(paramChange)
+
         flushSessionFile()
     }
     
@@ -307,12 +324,13 @@ class MeasurementService : Service() {
         }
         
         measurementData?.measurements?.add(measurement)
+        measurements.add(measurement)
         flushSessionFile()
     }
     
     private fun buildNotification(): android.app.Notification {
-        val elapsedSeconds = if (startTime > 0) {
-            (System.currentTimeMillis() - startTime) / 1000
+        val elapsedSeconds = if (startTimeMillis > 0) {
+            (System.currentTimeMillis() - startTimeMillis) / 1000
         } else {
             0
         }
@@ -348,5 +366,17 @@ class MeasurementService : Service() {
     private fun updateNotification() {
         val notification = buildNotification()
         notificationManager.notify(NOTIF_ID, notification)
+    }
+
+    private fun broadcastElapsedTime() {
+        val elapsedSeconds = if (startTimeMillis > 0) {
+            (System.currentTimeMillis() - startTimeMillis) / 1000
+        } else {
+            0
+        }
+        val intent = Intent(ACTION_ELAPSED_TIME_UPDATE)
+        intent.setPackage(packageName)
+        intent.putExtra(EXTRA_ELAPSED_TIME, elapsedSeconds)
+        sendBroadcast(intent)
     }
 }

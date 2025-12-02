@@ -58,6 +58,19 @@
         app:layout_constraintEnd_toEndOf="parent"
         android:layout_marginTop="8dp"/>
 
+    <!-- Elapsed Time -->
+    <TextView
+        android:id="@+id/textElapsedTime"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="16sp"
+        android:visibility="gone"
+        app:layout_constraintTop_toBottomOf="@id/textConnectionStatus"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginTop="8dp"
+        tools:text="Elapsed Time: 00:00:00"/>
+
     <!-- Demo Mode Switch -->
     <com.google.android.material.switchmaterial.SwitchMaterial
         android:id="@+id/switchDemoMode"
@@ -65,7 +78,7 @@
         android:layout_height="wrap_content"
         android:text="@string/demo_mode"
         android:checked="true"
-        app:layout_constraintTop_toBottomOf="@id/textConnectionStatus"
+        app:layout_constraintTop_toBottomOf="@id/textElapsedTime"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         android:layout_marginTop="24dp"/>

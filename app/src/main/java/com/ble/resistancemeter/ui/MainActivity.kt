@@ -3,13 +3,18 @@ package com.ble.resistancemeter.ui
 import android.Manifest
 import android.content.*
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.os.PowerManager
+import android.provider.Settings
+import android.view.View
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import com.ble.resistancemeter.R
@@ -50,8 +55,22 @@ class MainActivity : AppCompatActivity() {
         ActivityResultContracts.RequestMultiplePermissions()
     ) { permissions ->
         val allGranted = permissions.entries.all { it.value }
-        if (!allGranted) {
+        if (allGranted) {
+            // After foreground location is granted, request background location if needed
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                requestBackgroundLocationPermission()
+            }
+            requestBatteryOptimization()
+        } else {
             Toast.makeText(this, "Permissions are required for the app to work", Toast.LENGTH_LONG).show()
+        }
+    }
+    
+    private val backgroundLocationLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (!isGranted) {
+            Toast.makeText(this, "Background location access is recommended for long measurements", Toast.LENGTH_LONG).show()
         }
     }
     
@@ -59,6 +78,16 @@ class MainActivity : AppCompatActivity() {
         override fun onReceive(context: Context?, intent: Intent?) {
             val aValue = intent?.getDoubleExtra(MeasurementService.EXTRA_A_VALUE, 0.0) ?: 0.0
             binding.textCurrentValue.text = String.format("%.1f", aValue)
+        }
+    }
+    
+    private val elapsedTimeReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            val elapsedSeconds = intent?.getLongExtra(MeasurementService.EXTRA_ELAPSED_TIME, 0L) ?: 0L
+            val hours = elapsedSeconds / 3600
+            val minutes = (elapsedSeconds % 3600) / 60
+            val seconds = elapsedSeconds % 60
+            binding.textElapsedTime.text = getString(R.string.elapsed_time, String.format("%02d:%02d:%02d", hours, minutes, seconds))
         }
     }
     
@@ -78,20 +107,19 @@ class MainActivity : AppCompatActivity() {
         setupListeners()
         loadParameters()
         
-        // Register broadcast receiver for A value updates
-        val filter = IntentFilter(MeasurementService.ACTION_A_UPDATE)
-        ContextCompat.registerReceiver(
-            this,
-            aValueReceiver,
-            filter,
-            ContextCompat.RECEIVER_NOT_EXPORTED
-        )
+        // Register broadcast receivers
+        val aValueFilter = IntentFilter(MeasurementService.ACTION_A_UPDATE)
+        ContextCompat.registerReceiver(this, aValueReceiver, aValueFilter, ContextCompat.RECEIVER_NOT_EXPORTED)
+        
+        val elapsedTimeFilter = IntentFilter(MeasurementService.ACTION_ELAPSED_TIME_UPDATE)
+        ContextCompat.registerReceiver(this, elapsedTimeReceiver, elapsedTimeFilter, ContextCompat.RECEIVER_NOT_EXPORTED)
     }
     
     override fun onDestroy() {
         super.onDestroy()
         stopDemoGeneration()
         unregisterReceiver(aValueReceiver)
+        unregisterReceiver(elapsedTimeReceiver)
     }
     
     override fun onResume() {
@@ -149,6 +177,43 @@ class MainActivity : AppCompatActivity() {
         
         if (permissionsToRequest.isNotEmpty()) {
             requestPermissionsLauncher.launch(permissionsToRequest.toTypedArray())
+        } else {
+            // If all foreground permissions are already granted, check background location
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                requestBackgroundLocationPermission()
+            }
+            requestBatteryOptimization()
+        }
+    }
+    
+    private fun requestBackgroundLocationPermission() {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_BACKGROUND_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            AlertDialog.Builder(this)
+                .setTitle("Background Location")
+                .setMessage("This app collects location data in the background to enable continuous measurement recording even when the app is closed or not in use. Please grant background location access to ensure uninterrupted measurements.")
+                .setPositiveButton("Grant") { _, _ ->
+                    backgroundLocationLauncher.launch(Manifest.permission.ACCESS_BACKGROUND_LOCATION)
+                }
+                .setNegativeButton("Deny", null)
+                .show()
+        }
+    }
+    
+    private fun requestBatteryOptimization() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            val powerManager = getSystemService(POWER_SERVICE) as PowerManager
+            if (!powerManager.isIgnoringBatteryOptimizations(packageName)) {
+                AlertDialog.Builder(this)
+                    .setTitle("Disable Battery Optimization")
+                    .setMessage("To ensure the app can run for long periods in the background, please disable battery optimization.")
+                    .setPositiveButton("Disable") { _, _ ->
+                        val intent = Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS)
+                        intent.data = Uri.parse("package:$packageName")
+                        startActivity(intent)
+                    }
+                    .setNegativeButton("Cancel", null)
+                    .show()
+            }
         }
     }
     
@@ -252,6 +317,17 @@ class MainActivity : AppCompatActivity() {
         
         isServiceRunning = false
         updateUIForRunningState(false)
+        
+        // Save the collected data
+        viewModel.saveMeasurementData { fileName ->
+            runOnUiThread {
+                if (fileName != null) {
+                    Toast.makeText(this, "File saved: $fileName", Toast.LENGTH_LONG).show()
+                } else {
+                    Toast.makeText(this, "Failed to save file or no data", Toast.LENGTH_LONG).show()
+                }
+            }
+        }
     }
     
     private fun validateAndSaveN(): Int? {
@@ -324,11 +400,12 @@ class MainActivity : AppCompatActivity() {
             binding.buttonStartStop.text = getString(R.string.stop_measurement)
             binding.editTextN.isEnabled = false
             binding.editTextB.isEnabled = false
-            // Don't disable demo mode switch - it should work independently
+            binding.textElapsedTime.visibility = View.VISIBLE
         } else {
             binding.buttonStartStop.text = getString(R.string.start_measurement)
             binding.editTextN.isEnabled = true
             binding.editTextB.isEnabled = true
+            binding.textElapsedTime.visibility = View.GONE
         }
     }
 }

@@ -32,7 +32,6 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent" />
 
-        <!-- Floating button for file loading - positioned at top right, below toolbar -->
         <com.google.android.material.floatingactionbutton.FloatingActionButton
             android:id="@+id/fabLoadFile"
             android:layout_width="wrap_content"
@@ -41,6 +40,77 @@
             android:layout_margin="16dp"
             android:src="@android:drawable/ic_menu_upload"
             android:contentDescription="@string/load_file" />
+
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/fabShareFile"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="top|end"
+            android:layout_marginTop="88dp"
+            android:layout_marginEnd="16dp"
+            android:src="@android:drawable/ic_menu_share"
+            android:contentDescription="@string/share_file" />
+
+        <androidx.cardview.widget.CardView
+            android:id="@+id/legendCard"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom|center_horizontal"
+            android:layout_margin="16dp"
+            app:cardBackgroundColor="@color/gray"
+            app:cardCornerRadius="8dp"
+            app:cardElevation="4dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="12dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/resistance_legend"
+                    android:textColor="@android:color/white"
+                    android:textStyle="bold"
+                    android:layout_marginBottom="8dp"/>
+
+                <RelativeLayout
+                    android:layout_width="200dp"
+                    android:layout_height="wrap_content">
+
+                    <ImageView
+                        android:id="@+id/legendGradient"
+                        android:layout_width="match_parent"
+                        android:layout_height="20dp"
+                        android:scaleType="fitXY"
+                        android:contentDescription="@string/color_gradient"/>
+
+                    <TextView
+                        android:id="@+id/legendMinText"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        tools:text="100 Ω"
+                        android:textColor="@android:color/white"
+                        android:textSize="12sp"
+                        android:layout_below="@+id/legendGradient"
+                        android:layout_alignParentStart="true"/>
+
+                    <TextView
+                        android:id="@+id/legendMaxText"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        tools:text="1500 Ω"
+                        android:textColor="@android:color/white"
+                        android:textSize="12sp"
+                        android:layout_below="@+id/legendGradient"
+                        android:layout_alignParentEnd="true"/>
+
+                </RelativeLayout>
+
+            </LinearLayout>
+
+        </androidx.cardview.widget.CardView>
 
     </FrameLayout>
 
