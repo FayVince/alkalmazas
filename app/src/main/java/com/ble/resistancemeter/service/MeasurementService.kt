@@ -272,6 +272,7 @@ class MeasurementService : Service() {
         
         // Broadcast A value update to UI
         val intent = Intent(ACTION_A_UPDATE)
+        intent.setPackage(packageName)
         intent.putExtra(EXTRA_A_VALUE, aValue)
         sendBroadcast(intent)
     }

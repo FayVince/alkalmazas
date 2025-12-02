@@ -24,10 +24,54 @@ Android alkalmazás amely Bluetooth LE-n keresztül fogad ellenállás mérési 
 ## Használat
 
 ### Főképernyő
-- **N paraméter**: 1-99 közötti érték - hány mérést átlagolja
-- **B paraméter**: 1-999 közötti érték másodpercben - milyen gyakran menti az átlagot
+- **N paraméter**: 1-99 közötti érték - hány mérést átlagolja (billentyűzettel szerkeszthető)
+- **B paraméter**: 1-999 közötti érték másodpercben - milyen gyakran menti az átlagot (billentyűzettel szerkeszthető)
 - **Demo Mode**: Kapcsoló a szimulált adatok generálásához
 - **Start/Stop**: Mérés indítása/megállítása
+
+### MeasurementService (Háttérszolgáltatás)
+- **Előtérszolgáltatás**: Folyamatos értesítéssel és GPS frissítéssel fut
+- **Értesítés**: "Kesztyű mérés fut" címmel, futási időt mutatja másodpercekben
+- **GPS frissítés**: ~1 másodpercenként kéri a helyadatokat
+- **Helyadat kezelés**: 0/0 koordinátákat ignorálja, utolsó érvényes pozíciót használja
+- **Mozgó átlag**: Max 99 mintát tárol ArrayDeque-ban
+- **Paraméter változások**: N és B értékek futás közben is módosíthatók, JSON-ba logolva
+
+### BLE Integráció
+A BLE kód a következő módon hívhatja meg a `MeasurementService.onBleMeasurement(rawValue: Int)` metódust:
+
+**1. Service Binding módszer (ajánlott):**
+```kotlin
+// BLE Repository vagy Service-ben
+private var measurementService: MeasurementService? = null
+private val serviceConnection = object : ServiceConnection {
+    override fun onServiceConnected(name: ComponentName?, binder: IBinder?) {
+        val localBinder = binder as MeasurementService.LocalBinder
+        measurementService = localBinder.getService()
+    }
+    override fun onServiceDisconnected(name: ComponentName?) {
+        measurementService = null
+    }
+}
+
+// BLE mérés érkezésekor:
+measurementService?.onBleMeasurement(rawValue)
+```
+
+**2. Broadcast Intent módszer:**
+```kotlin
+// Alternatíva: Intent küldése
+val intent = Intent("com.ble.resistancemeter.action.BLE_MEASUREMENT")
+intent.setPackage(packageName)
+intent.putExtra("raw_value", rawValue)
+sendBroadcast(intent)
+```
+
+**3. Demo/Teszt módszer:**
+```kotlin
+// Direkt hívás teszteléshez (ha van referencia a Service-re)
+measurementService.onBleMeasurement(randomValue)
+```
 
 ### Térkép képernyő
 - Megjeleníti a mérési pontokat

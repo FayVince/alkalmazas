@@ -54,11 +54,12 @@ class MainActivity : AppCompatActivity() {
         
         // Register broadcast receiver for A value updates
         val filter = IntentFilter(MeasurementService.ACTION_A_UPDATE)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            registerReceiver(aValueReceiver, filter, Context.RECEIVER_NOT_EXPORTED)
-        } else {
-            registerReceiver(aValueReceiver, filter)
-        }
+        ContextCompat.registerReceiver(
+            this,
+            aValueReceiver,
+            filter,
+            ContextCompat.RECEIVER_NOT_EXPORTED
+        )
     }
     
     override fun onDestroy() {
