@@ -45,6 +45,7 @@ class MeasurementService : Service() {
         const val EXTRA_N = "extra_n"
         const val EXTRA_B = "extra_b"
         const val EXTRA_A_VALUE = "extra_a_value"
+        const val EXTRA_RAW_VALUE = "raw_value"
     }
     
     private lateinit var fusedLocationClient: FusedLocationProviderClient
@@ -97,7 +98,7 @@ class MeasurementService : Service() {
             ACTION_STOP -> stopMeasurement()
             ACTION_UPDATE_PARAMS -> updateParameters(intent)
             ACTION_BLE_DATA -> {
-                val rawValue = intent.getIntExtra("raw_value", 0)
+                val rawValue = intent.getIntExtra(EXTRA_RAW_VALUE, 0)
                 onBleMeasurement(rawValue)
             }
         }

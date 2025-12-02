@@ -38,7 +38,7 @@ class MainActivity : AppCompatActivity() {
                 // Send to service
                 val intent = Intent(this@MainActivity, MeasurementService::class.java).apply {
                     action = MeasurementService.ACTION_BLE_DATA
-                    putExtra("raw_value", randomValue)
+                    putExtra(MeasurementService.EXTRA_RAW_VALUE, randomValue)
                 }
                 startService(intent)
                 demoHandler.postDelayed(this, 1000) // every second
