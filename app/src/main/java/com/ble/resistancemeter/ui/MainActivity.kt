@@ -6,8 +6,6 @@ import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
 import android.os.PowerManager
 import android.provider.Settings
 import android.view.View
@@ -22,7 +20,6 @@ import com.ble.resistancemeter.databinding.ActivityMainBinding
 import com.ble.resistancemeter.repository.BleRepository
 import com.ble.resistancemeter.service.MeasurementService
 import com.ble.resistancemeter.viewmodel.MeasurementViewModel
-import kotlin.random.Random
 
 class MainActivity : AppCompatActivity() {
     
@@ -33,36 +30,17 @@ class MainActivity : AppCompatActivity() {
     private var isServiceRunning = false
     private var isDemoMode = false
     
-    private val demoHandler = Handler(Looper.getMainLooper())
-    
-    private val demoRunnable = object : Runnable {
-        override fun run() {
-            if (isDemoMode) {
-                // Generate random resistance value (500-2000 ohms range)
-                val randomValue = Random.nextInt(500, 2000)
-                // Send to service
-                val intent = Intent(this@MainActivity, MeasurementService::class.java).apply {
-                    action = MeasurementService.ACTION_BLE_DATA
-                    putExtra(MeasurementService.EXTRA_RAW_VALUE, randomValue)
-                }
-                startService(intent)
-                demoHandler.postDelayed(this, 1000) // every second
-            }
-        }
-    }
-    
     private val requestPermissionsLauncher = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
     ) { permissions ->
         val allGranted = permissions.entries.all { it.value }
         if (allGranted) {
-            // After foreground location is granted, request background location if needed
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                 requestBackgroundLocationPermission()
             }
             requestBatteryOptimization()
         } else {
-            Toast.makeText(this, "Permissions are required for the app to work", Toast.LENGTH_LONG).show()
+            Toast.makeText(this, getString(R.string.permissions_required), Toast.LENGTH_LONG).show()
         }
     }
     
@@ -70,7 +48,7 @@ class MainActivity : AppCompatActivity() {
         ActivityResultContracts.RequestPermission()
     ) { isGranted ->
         if (!isGranted) {
-            Toast.makeText(this, "Background location access is recommended for long measurements", Toast.LENGTH_LONG).show()
+            Toast.makeText(this, getString(R.string.background_location_recommended), Toast.LENGTH_LONG).show()
         }
     }
     
@@ -90,6 +68,14 @@ class MainActivity : AppCompatActivity() {
             binding.textElapsedTime.text = getString(R.string.elapsed_time, String.format("%02d:%02d:%02d", hours, minutes, seconds))
         }
     }
+
+    private val stopActionReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            if (intent?.action == MeasurementService.ACTION_STOP_FROM_NOTIFICATION) {
+                stopMeasurementService()
+            }
+        }
+    }
     
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -98,7 +84,6 @@ class MainActivity : AppCompatActivity() {
         
         sharedPreferences = getSharedPreferences("settings", Context.MODE_PRIVATE)
         
-        // Load demo mode state
         isDemoMode = sharedPreferences.getBoolean("demo_mode", false)
         binding.switchDemoMode.isChecked = isDemoMode
         
@@ -107,52 +92,29 @@ class MainActivity : AppCompatActivity() {
         setupListeners()
         loadParameters()
         
-        // Register broadcast receivers
         val aValueFilter = IntentFilter(MeasurementService.ACTION_A_UPDATE)
         ContextCompat.registerReceiver(this, aValueReceiver, aValueFilter, ContextCompat.RECEIVER_NOT_EXPORTED)
         
         val elapsedTimeFilter = IntentFilter(MeasurementService.ACTION_ELAPSED_TIME_UPDATE)
         ContextCompat.registerReceiver(this, elapsedTimeReceiver, elapsedTimeFilter, ContextCompat.RECEIVER_NOT_EXPORTED)
+
+        val stopFilter = IntentFilter(MeasurementService.ACTION_STOP_FROM_NOTIFICATION)
+        ContextCompat.registerReceiver(this, stopActionReceiver, stopFilter, ContextCompat.RECEIVER_NOT_EXPORTED)
     }
     
     override fun onDestroy() {
         super.onDestroy()
-        stopDemoGeneration()
         unregisterReceiver(aValueReceiver)
         unregisterReceiver(elapsedTimeReceiver)
-    }
-    
-    override fun onResume() {
-        super.onResume()
-        // Restart demo mode if it was enabled
-        if (isDemoMode) {
-            startDemoGeneration()
-        }
-    }
-    
-    override fun onPause() {
-        super.onPause()
-        // Stop demo mode when paused to save battery
-        stopDemoGeneration()
-    }
-    
-    private fun startDemoGeneration() {
-        demoHandler.removeCallbacks(demoRunnable)
-        demoHandler.post(demoRunnable)
-    }
-    
-    private fun stopDemoGeneration() {
-        demoHandler.removeCallbacks(demoRunnable)
+        unregisterReceiver(stopActionReceiver)
     }
     
     private fun requestPermissions() {
         val permissions = mutableListOf<String>()
         
-        // Location permissions
         permissions.add(Manifest.permission.ACCESS_FINE_LOCATION)
         permissions.add(Manifest.permission.ACCESS_COARSE_LOCATION)
         
-        // Bluetooth permissions
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             permissions.add(Manifest.permission.BLUETOOTH_SCAN)
             permissions.add(Manifest.permission.BLUETOOTH_CONNECT)
@@ -161,12 +123,10 @@ class MainActivity : AppCompatActivity() {
             permissions.add(Manifest.permission.BLUETOOTH_ADMIN)
         }
         
-        // Storage permissions (for older Android versions)
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
             permissions.add(Manifest.permission.WRITE_EXTERNAL_STORAGE)
         }
         
-        // Notification permission for Android 13+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             permissions.add(Manifest.permission.POST_NOTIFICATIONS)
         }
@@ -178,7 +138,6 @@ class MainActivity : AppCompatActivity() {
         if (permissionsToRequest.isNotEmpty()) {
             requestPermissionsLauncher.launch(permissionsToRequest.toTypedArray())
         } else {
-            // If all foreground permissions are already granted, check background location
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                 requestBackgroundLocationPermission()
             }
@@ -189,12 +148,12 @@ class MainActivity : AppCompatActivity() {
     private fun requestBackgroundLocationPermission() {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_BACKGROUND_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             AlertDialog.Builder(this)
-                .setTitle("Background Location")
-                .setMessage("This app collects location data in the background to enable continuous measurement recording even when the app is closed or not in use. Please grant background location access to ensure uninterrupted measurements.")
-                .setPositiveButton("Grant") { _, _ ->
+                .setTitle(getString(R.string.background_location_title))
+                .setMessage(getString(R.string.background_location_message))
+                .setPositiveButton(getString(R.string.grant)) { _, _ ->
                     backgroundLocationLauncher.launch(Manifest.permission.ACCESS_BACKGROUND_LOCATION)
                 }
-                .setNegativeButton("Deny", null)
+                .setNegativeButton(getString(R.string.deny), null)
                 .show()
         }
     }
@@ -204,14 +163,14 @@ class MainActivity : AppCompatActivity() {
             val powerManager = getSystemService(POWER_SERVICE) as PowerManager
             if (!powerManager.isIgnoringBatteryOptimizations(packageName)) {
                 AlertDialog.Builder(this)
-                    .setTitle("Disable Battery Optimization")
-                    .setMessage("To ensure the app can run for long periods in the background, please disable battery optimization.")
-                    .setPositiveButton("Disable") { _, _ ->
+                    .setTitle(getString(R.string.disable_battery_optimization_title))
+                    .setMessage(getString(R.string.disable_battery_optimization_message))
+                    .setPositiveButton(getString(R.string.disable)) { _, _ ->
                         val intent = Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS)
                         intent.data = Uri.parse("package:$packageName")
                         startActivity(intent)
                     }
-                    .setNegativeButton("Cancel", null)
+                    .setNegativeButton(getString(R.string.cancel), null)
                     .show()
             }
         }
@@ -227,7 +186,6 @@ class MainActivity : AppCompatActivity() {
     
     private fun setupObservers() {
         viewModel.currentAValue.observe(this) { value ->
-            // This is kept for backward compatibility with demo mode in ViewModel
             if (!isServiceRunning) {
                 binding.textCurrentValue.text = String.format("%.1f", value)
             }
@@ -267,31 +225,28 @@ class MainActivity : AppCompatActivity() {
         
         binding.switchDemoMode.setOnCheckedChangeListener { _, isChecked ->
             isDemoMode = isChecked
-            // Save demo mode state
             sharedPreferences.edit().putBoolean("demo_mode", isDemoMode).apply()
             
-            // Start or stop demo data generation
-            if (isDemoMode) {
-                startDemoGeneration()
-            } else {
-                stopDemoGeneration()
+            if (isServiceRunning) {
+                if (isChecked) {
+                    startDemoGenerationInService()
+                } else {
+                    stopDemoGenerationInService()
+                }
             }
-            
-            // Also update ViewModel for backward compatibility
-            viewModel.toggleDemoMode(isChecked)
         }
     }
     
     private fun startMeasurementService() {
-        // Validate and save parameters
         val n = validateAndSaveN()
         val b = validateAndSaveB()
         
         if (n == null || b == null) {
             return
         }
+
+        binding.textCurrentValue.text = getString(R.string.waiting_for_gps)
         
-        // Start the service
         val intent = Intent(this, MeasurementService::class.java).apply {
             action = MeasurementService.ACTION_START
         }
@@ -305,8 +260,11 @@ class MainActivity : AppCompatActivity() {
         isServiceRunning = true
         updateUIForRunningState(true)
         
-        // Send initial parameters to service
         sendParametersToService(n, b)
+
+        if (isDemoMode) {
+            startDemoGenerationInService()
+        }
     }
     
     private fun stopMeasurementService() {
@@ -317,17 +275,30 @@ class MainActivity : AppCompatActivity() {
         
         isServiceRunning = false
         updateUIForRunningState(false)
-        
-        // Save the collected data
+
         viewModel.saveMeasurementData { fileName ->
             runOnUiThread {
                 if (fileName != null) {
-                    Toast.makeText(this, "File saved: $fileName", Toast.LENGTH_LONG).show()
+                    Toast.makeText(this, getString(R.string.file_saved, fileName), Toast.LENGTH_LONG).show()
                 } else {
-                    Toast.makeText(this, "Failed to save file or no data", Toast.LENGTH_LONG).show()
+                    Toast.makeText(this, getString(R.string.failed_to_save_file), Toast.LENGTH_LONG).show()
                 }
             }
         }
+    }
+
+    private fun startDemoGenerationInService() {
+        val intent = Intent(this, MeasurementService::class.java).apply {
+            action = MeasurementService.ACTION_START_DEMO
+        }
+        startService(intent)
+    }
+
+    private fun stopDemoGenerationInService() {
+        val intent = Intent(this, MeasurementService::class.java).apply {
+            action = MeasurementService.ACTION_STOP_DEMO
+        }
+        startService(intent)
     }
     
     private fun validateAndSaveN(): Int? {
@@ -335,13 +306,12 @@ class MainActivity : AppCompatActivity() {
         val value = text.toIntOrNull()
         
         if (value == null || value !in 1..99) {
-            Toast.makeText(this, "N must be between 1 and 99", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, getString(R.string.n_value_error), Toast.LENGTH_SHORT).show()
             return null
         }
         
         sharedPreferences.edit().putInt("n_value", value).apply()
         
-        // Send parameter update to service if running
         if (isServiceRunning) {
             val b = validateBValue()
             if (b != null) {
@@ -357,13 +327,12 @@ class MainActivity : AppCompatActivity() {
         val value = text.toIntOrNull()
         
         if (value == null || value !in 1..999) {
-            Toast.makeText(this, "B must be between 1 and 999", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, getString(R.string.b_value_error), Toast.LENGTH_SHORT).show()
             return null
         }
         
         sharedPreferences.edit().putInt("b_value", value).apply()
         
-        // Send parameter update to service if running
         if (isServiceRunning) {
             val n = validateNValue()
             if (n != null) {

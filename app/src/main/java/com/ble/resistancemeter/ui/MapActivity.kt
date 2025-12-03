@@ -65,7 +65,7 @@ class MapActivity : AppCompatActivity() {
         }
 
         binding.fabShareFile.setOnClickListener {
-            shareCurrentFile()
+            shareCurrentFileAsCsv()
         }
     }
 
@@ -89,9 +89,9 @@ class MapActivity : AppCompatActivity() {
 
         if (files.isEmpty()) {
             AlertDialog.Builder(this)
-                .setTitle("No Files")
-                .setMessage("No measurement files found")
-                .setPositiveButton("OK", null)
+                .setTitle(getString(R.string.no_files_title))
+                .setMessage(getString(R.string.no_files_message))
+                .setPositiveButton(getString(R.string.ok), null)
                 .show()
             return
         }
@@ -103,7 +103,7 @@ class MapActivity : AppCompatActivity() {
             .setItems(fileNames) { _, which ->
                 loadAndDisplayFile(files[which])
             }
-            .setNegativeButton("Cancel", null)
+            .setNegativeButton(getString(R.string.cancel), null)
             .show()
     }
 
@@ -115,15 +115,18 @@ class MapActivity : AppCompatActivity() {
         }
     }
 
-    private fun shareCurrentFile() {
+    private fun shareCurrentFileAsCsv() {
         currentFile?.let {
-            val uri = FileProvider.getUriForFile(this, "${packageName}.provider", it)
-            val shareIntent = Intent(Intent.ACTION_SEND).apply {
-                type = "application/json"
-                putExtra(Intent.EXTRA_STREAM, uri)
-                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            val csvFile = viewModel.convertJsonToCsv(it)
+            csvFile?.let {
+                val uri = FileProvider.getUriForFile(this, "${packageName}.provider", it)
+                val shareIntent = Intent(Intent.ACTION_SEND).apply {
+                    type = "text/csv"
+                    putExtra(Intent.EXTRA_STREAM, uri)
+                    addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                }
+                startActivity(Intent.createChooser(shareIntent, getString(R.string.share_csv_file)))
             }
-            startActivity(Intent.createChooser(shareIntent, "Share File"))
         }
     }
 

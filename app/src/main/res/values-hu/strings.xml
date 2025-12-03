@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Bőrellenállásmérő</string>
+    <string name="start_measurement">Mérés indítása</string>
+    <string name="stop_measurement">Mérés vége</string>
+    <string name="view_map">Térkép</string>
+    <string name="demo_mode">Demo mode</string>
+    <string name="current_value_label">Jelenlegi A:</string>
+    <string name="n_label">N (átlag):</string>
+    <string name="b_label">B (mentési intervallum):</string>
+    <string name="connection_status_label">Csatlakozás</string>
+    <string name="disconnected">Szétkapcsolva</string>
+    <string name="connecting">Csatlakozás</string>
+    <string name="connected">Csatlakozott</string>
+    <string name="elapsed_time">Mérés ideje : %s</string>
+    <string name="resistance_map">Térkép</string>
+    <string name="select_file">Válassz fájlt</string>
+    <string name="waiting_for_gps">GPS-re vár</string>
+    <string name="current_value">Jelenlegi érték</string>
+    <string name="connection_status">Bluetooth állapot:</string>
+    <string name="n_parameter">"Átlag "</string>
+    <string name="b_parameter">Mérés intervalluma (s)</string>
+    <string name="load_file">Fájl betöltése</string>
+    <string name="share_file">Fájl megosztása</string>
+    <string name="resistance_legend">Mértékegység</string>
+    <string name="permissions_required">Az engedélyek szükségesek az app futásához</string>
+    <string name="background_location_recommended">Háttérbeli GPS elérés ajánlott a hosszú mérésekhez</string>
+    <string name="background_location_message">A háttérbeli GPS elérés szükséges</string>
+    <string name="grant">Engedélyez</string>
+    <string name="deny">Elutasít</string>
+    <string name="disable_battery_optimization_title">Akkumulátorkímélő kikapcsolása</string>
+    <string name="disable_battery_optimization_message">Az akkumulátorkímélő kikapcsolása szükséges</string>
+    <string name="disable">Kikapcsol</string>
+    <string name="cancel">Mégse</string>
+    <string name="n_value_error">Az átlagnak 1 és 99 között kell lennie</string>
+    <string name="b_value_error">A mérés intervallumának 1 és 999 között kell lennie</string>
+    <string name="file_saved">Fájl mentve: %s</string>
+    <string name="failed_to_save_file">Nem sikerült menteni vagy nincs adat</string>
+    <string name="no_files_title">Nincsenek fájlok</string>
+    <string name="no_files_message">Nincsenek mérési fájlok</string>
+    <string name="share_csv_file">CSV megosztása</string>
+    <string name="measurement_in_progress">Mérés folyamatban</string>
+    <string name="elapsed_time_notif">Mérés ideje: %s</string>
+    <string name="stop">Leállítás</string>
+</resources>

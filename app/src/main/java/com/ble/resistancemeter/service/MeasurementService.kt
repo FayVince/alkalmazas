@@ -28,6 +28,7 @@ import java.io.File
 import java.io.FileWriter
 import java.text.SimpleDateFormat
 import java.util.*
+import kotlin.random.Random
 
 class MeasurementService : Service() {
     
@@ -42,7 +43,10 @@ class MeasurementService : Service() {
         const val ACTION_A_UPDATE = "com.ble.resistancemeter.action.A_UPDATE"
         const val ACTION_BLE_DATA = "com.fayvince.alkalmazas.action.BLE_DATA"
         const val ACTION_ELAPSED_TIME_UPDATE = "com.ble.resistancemeter.action.ELAPSED_TIME_UPDATE"
-        
+        const val ACTION_START_DEMO = "com.ble.resistancemeter.action.START_DEMO"
+        const val ACTION_STOP_DEMO = "com.ble.resistancemeter.action.STOP_DEMO"
+        const val ACTION_STOP_FROM_NOTIFICATION = "com.ble.resistancemeter.action.STOP_FROM_NOTIFICATION"
+
         const val EXTRA_N = "extra_n"
         const val EXTRA_B = "extra_b"
         const val EXTRA_A_VALUE = "extra_a_value"
@@ -63,7 +67,6 @@ class MeasurementService : Service() {
     private lateinit var notificationManager: NotificationManager
     private val gson: Gson = GsonBuilder().setPrettyPrinting().create()
     
-    private var currentLocation: Location? = null
     private var lastKnownNonZeroLocation: Location? = null
     
     private val sampleBuffer = ArrayDeque<Int>()
@@ -76,6 +79,15 @@ class MeasurementService : Service() {
     private var startTimeMillis = 0L
     private val updateHandler = Handler(Looper.getMainLooper())
     private val saveHandler = Handler(Looper.getMainLooper())
+    private val demoHandler = Handler(Looper.getMainLooper())
+    
+    private val demoRunnable = object : Runnable {
+        override fun run() {
+            val randomValue = Random.nextInt(500, 2000)
+            onBleMeasurement(randomValue)
+            demoHandler.postDelayed(this, 1000)
+        }
+    }
     
     private val notificationUpdateRunnable = object : Runnable {
         override fun run() {
@@ -107,6 +119,8 @@ class MeasurementService : Service() {
         when (intent?.action) {
             ACTION_START -> startMeasurement()
             ACTION_STOP -> stopMeasurement()
+            ACTION_START_DEMO -> startDemoGeneration()
+            ACTION_STOP_DEMO -> stopDemoGeneration()
             ACTION_UPDATE_PARAMS -> updateParameters(intent)
             ACTION_BLE_DATA -> {
                 val rawValue = intent.getIntExtra(EXTRA_RAW_VALUE, 0)
@@ -126,13 +140,14 @@ class MeasurementService : Service() {
         stopLocationUpdates()
         updateHandler.removeCallbacks(notificationUpdateRunnable)
         saveHandler.removeCallbacks(saveMeasurementRunnable)
+        stopDemoGeneration()
     }
     
     private fun createNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(
                 CHANNEL_ID,
-                "Measurement Service Channel",
+                getString(R.string.measurement_service_channel_name),
                 NotificationManager.IMPORTANCE_LOW
             )
             notificationManager.createNotificationChannel(channel)
@@ -143,10 +158,13 @@ class MeasurementService : Service() {
         locationCallback = object : LocationCallback() {
             override fun onLocationResult(locationResult: LocationResult) {
                 for (location in locationResult.locations) {
-                    // Ignore 0.0/0.0 coordinates
                     if (location.latitude != 0.0 || location.longitude != 0.0) {
-                        currentLocation = location
+                        val wasGpsReady = lastKnownNonZeroLocation != null
                         lastKnownNonZeroLocation = location
+
+                        if (!wasGpsReady) {
+                            startTimers()
+                        }
                     }
                 }
             }
@@ -165,7 +183,8 @@ class MeasurementService : Service() {
         measurements.clear()
         parameterChanges.clear()
         startTime = ""
-        
+        lastKnownNonZeroLocation = null
+
         createSessionFile()
         startLocationUpdates()
         
@@ -173,6 +192,10 @@ class MeasurementService : Service() {
         startForeground(NOTIF_ID, notification)
         
         updateHandler.post(notificationUpdateRunnable)
+    }
+
+    private fun startTimers() {
+        saveHandler.removeCallbacks(saveMeasurementRunnable)
         saveHandler.postDelayed(saveMeasurementRunnable, bValue * 1000L)
     }
     
@@ -180,6 +203,7 @@ class MeasurementService : Service() {
         stopLocationUpdates()
         updateHandler.removeCallbacks(notificationUpdateRunnable)
         saveHandler.removeCallbacks(saveMeasurementRunnable)
+        stopDemoGeneration()
         
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
             stopForeground(STOP_FOREGROUND_REMOVE)
@@ -190,6 +214,15 @@ class MeasurementService : Service() {
         stopSelf()
     }
     
+    private fun startDemoGeneration() {
+        demoHandler.removeCallbacks(demoRunnable)
+        demoHandler.post(demoRunnable)
+    }
+    
+    private fun stopDemoGeneration() {
+        demoHandler.removeCallbacks(demoRunnable)
+    }
+    
     private fun updateParameters(intent: Intent) {
         val newN = intent.getIntExtra(EXTRA_N, nValue).coerceIn(1, 99)
         val newB = intent.getIntExtra(EXTRA_B, bValue).coerceIn(1, 999)
@@ -198,7 +231,6 @@ class MeasurementService : Service() {
         nValue = newN
         bValue = newB
         
-        // Save to SharedPreferences
         getSharedPreferences("settings", Context.MODE_PRIVATE)
             .edit()
             .putInt("n_value", nValue)
@@ -206,16 +238,16 @@ class MeasurementService : Service() {
             .apply()
         
         if (paramsChanged) {
-            // Log parameter change
             val timestamp = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.getDefault()).format(Date())
             val paramChange = ParameterChange(timestamp, nValue, B = bValue)
             measurementData?.parameterChanges?.add(paramChange)
             parameterChanges.add(paramChange)
             flushSessionFile()
             
-            // Restart save timer with new B value
-            saveHandler.removeCallbacks(saveMeasurementRunnable)
-            saveHandler.postDelayed(saveMeasurementRunnable, bValue * 1000L)
+            if (lastKnownNonZeroLocation != null) {
+                saveHandler.removeCallbacks(saveMeasurementRunnable)
+                saveHandler.postDelayed(saveMeasurementRunnable, bValue * 1000L)
+            }
         }
     }
     
@@ -232,7 +264,6 @@ class MeasurementService : Service() {
         startTime = timestamp
         measurementData = MeasurementData(startTime = timestamp)
         
-        // Add initial parameter values
         val paramChange = ParameterChange(timestamp, nValue, B = bValue)
         measurementData?.parameterChanges?.add(paramChange)
         parameterChanges.add(paramChange)
@@ -260,7 +291,7 @@ class MeasurementService : Service() {
         
         val locationRequest = LocationRequest.Builder(
             Priority.PRIORITY_HIGH_ACCURACY,
-            1000L  // 1 second interval
+            1000L
         ).build()
         
         fusedLocationClient.requestLocationUpdates(
@@ -273,32 +304,22 @@ class MeasurementService : Service() {
     private fun stopLocationUpdates() {
         fusedLocationClient.removeLocationUpdates(locationCallback)
     }
-    
-    /**
-     * Public method for BLE integration to send raw measurement values.
-     * BLE code should call this method with the raw low-high byte integer value.
-     * 
-     * Integration options:
-     * 1. Bind to service and call this method directly
-     * 2. Send a broadcast intent with the raw value
-     */
+
     fun onBleMeasurement(rawValue: Int) {
-        // Add to buffer
         sampleBuffer.addLast(rawValue)
         
-        // Limit buffer to max size
         while (sampleBuffer.size > MAX_BUFFER_SIZE) {
             sampleBuffer.removeFirst()
         }
         
-        // Calculate moving average
-        val aValue = calculateMovingAverage()
-        
-        // Broadcast A value update to UI
-        val intent = Intent(ACTION_A_UPDATE)
-        intent.setPackage(packageName)
-        intent.putExtra(EXTRA_A_VALUE, aValue)
-        sendBroadcast(intent)
+        if (lastKnownNonZeroLocation != null) {
+            val aValue = calculateMovingAverage()
+            
+            val intent = Intent(ACTION_A_UPDATE)
+            intent.setPackage(packageName)
+            intent.putExtra(EXTRA_A_VALUE, aValue)
+            sendBroadcast(intent)
+        }
     }
     
     private fun calculateMovingAverage(): Double {
@@ -311,17 +332,13 @@ class MeasurementService : Service() {
     }
     
     private fun saveMeasurement() {
+        if (lastKnownNonZeroLocation == null) return
+
         val aValue = calculateMovingAverage()
         val timestamp = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.getDefault()).format(Date())
         
-        val location = lastKnownNonZeroLocation
-        val measurement = if (location != null) {
-            Measurement(timestamp, aValue, location.latitude, location.longitude)
-        } else {
-            // No valid GPS location obtained yet - using 0.0/0.0 as placeholder
-            // Note: Incoming 0/0 coords from GPS are ignored (see locationCallback)
-            Measurement(timestamp, aValue, 0.0, 0.0)
-        }
+        val location = lastKnownNonZeroLocation!!
+        val measurement = Measurement(timestamp, aValue, location.latitude, location.longitude)
         
         measurementData?.measurements?.add(measurement)
         measurements.add(measurement)
@@ -334,31 +351,42 @@ class MeasurementService : Service() {
         } else {
             0
         }
-        
-        val contentIntent = Intent(this, MainActivity::class.java)
+
+        val hours = elapsedSeconds / 3600
+        val minutes = (elapsedSeconds % 3600) / 60
+        val seconds = elapsedSeconds % 60
+        val timeString = String.format("%02d:%02d:%02d", hours, minutes, seconds)
+
+        val flag = if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) PendingIntent.FLAG_IMMUTABLE else 0
+
+        val contentIntent = Intent(this, MainActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_CLEAR_TOP
+        }
         val contentPendingIntent = PendingIntent.getActivity(
             this,
             0,
             contentIntent,
-            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
+            PendingIntent.FLAG_UPDATE_CURRENT or flag
         )
-        
-        val stopIntent = Intent(this, MeasurementService::class.java).apply {
-            action = ACTION_STOP
-        }
-        val stopPendingIntent = PendingIntent.getService(
+
+        val stopIntent = Intent(ACTION_STOP_FROM_NOTIFICATION)
+        stopIntent.setPackage(packageName)
+
+        val stopPendingIntent = PendingIntent.getBroadcast(
             this,
             1,
             stopIntent,
-            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
+            PendingIntent.FLAG_UPDATE_CURRENT or flag
         )
-        
+
+        val title = if (lastKnownNonZeroLocation == null) getString(R.string.waiting_for_gps) else getString(R.string.measurement_in_progress)
+
         return NotificationCompat.Builder(this, CHANNEL_ID)
-            .setContentTitle("Kesztyű mérés fut")
-            .setContentText("Futási idő: $elapsedSeconds másodperc")
+            .setContentTitle(title)
+            .setContentText(getString(R.string.elapsed_time_notif, timeString))
             .setSmallIcon(R.drawable.ic_launcher_foreground)
             .setContentIntent(contentPendingIntent)
-            .addAction(R.drawable.ic_launcher_foreground, "Leállítás", stopPendingIntent)
+            .addAction(R.drawable.ic_launcher_foreground, getString(R.string.stop), stopPendingIntent)
             .setOngoing(true)
             .build()
     }

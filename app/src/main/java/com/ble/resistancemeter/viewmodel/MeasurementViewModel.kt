@@ -17,6 +17,7 @@ import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import kotlinx.coroutines.*
 import java.io.File
+import java.io.FileWriter
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -252,6 +253,25 @@ class MeasurementViewModel(application: Application) : AndroidViewModel(applicat
     fun getAllMeasurementFiles(): List<File> = fileRepository.getAllMeasurementFiles()
     
     fun loadMeasurementFile(file: File): MeasurementData? = fileRepository.loadFile(file)
+    
+    fun convertJsonToCsv(jsonFile: File): File? {
+        val measurementData = fileRepository.loadFile(jsonFile) ?: return null
+        val csvFile = File(jsonFile.parent, jsonFile.name.replace(".json", ".csv"))
+
+        try {
+            FileWriter(csvFile).use { writer ->
+                writer.append("timestamp,value,latitude,longitude\n")
+
+                measurementData.measurements.forEach { measurement ->
+                    writer.append("${measurement.timestamp},${measurement.value},${measurement.latitude},${measurement.longitude}\n")
+                }
+            }
+            return csvFile
+        } catch (e: Exception) {
+            e.printStackTrace()
+            return null
+        }
+    }
     
     override fun onCleared() {
         super.onCleared()
