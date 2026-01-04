@@ -45,4 +45,9 @@
     <string name="elapsed_time_notif">Futási idő: %s</string>
     <string name="stop">Leállítás</string>
     <string name="measurement_service_channel_name">Measurement Service Channel</string>
+    <string name="connect">Connect</string>
+    <string name="select_bluetooth_device">Select Bluetooth Device</string>
+    <string name="scanning">Scanning...</string>
+    <string name="no_devices_found">No devices found</string>
+    <string name="bluetooth_disabled">Bluetooth is disabled</string>
 </resources>

@@ -210,6 +210,10 @@ class MainActivity : AppCompatActivity() {
     }
     
     private fun setupListeners() {
+        binding.buttonConnect.setOnClickListener {
+            showBluetoothDeviceSelectionDialog()
+        }
+        
         binding.buttonStartStop.setOnClickListener {
             if (isServiceRunning) {
                 stopMeasurementService()
@@ -235,6 +239,15 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         }
+    }
+    
+    private fun showBluetoothDeviceSelectionDialog() {
+        val bleRepository = BleRepository(this)
+        val dialog = BluetoothDeviceSelectionDialog(this, bleRepository) { device ->
+            viewModel.connectToDevice(device)
+            Toast.makeText(this, getString(R.string.connecting), Toast.LENGTH_SHORT).show()
+        }
+        dialog.show()
     }
     
     private fun startMeasurementService() {
