@@ -20,6 +20,8 @@ import com.ble.resistancemeter.databinding.ActivityMainBinding
 import com.ble.resistancemeter.repository.BleRepository
 import com.ble.resistancemeter.service.MeasurementService
 import com.ble.resistancemeter.viewmodel.MeasurementViewModel
+import com.google.android.gms.location.*
+import android.os.Looper
 
 class MainActivity : AppCompatActivity() {
     
@@ -29,6 +31,9 @@ class MainActivity : AppCompatActivity() {
     
     private var isServiceRunning = false
     private var isDemoMode = false
+    
+    private lateinit var fusedLocationClient: FusedLocationProviderClient
+    private lateinit var locationCallback: LocationCallback
     
     private val requestPermissionsLauncher = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
@@ -92,6 +97,9 @@ class MainActivity : AppCompatActivity() {
         setupListeners()
         loadParameters()
         
+        // GPS keresés indítása az app megnyitásakor
+        startGpsUpdates()
+        
         val aValueFilter = IntentFilter(MeasurementService.ACTION_A_UPDATE)
         ContextCompat.registerReceiver(this, aValueReceiver, aValueFilter, ContextCompat.RECEIVER_NOT_EXPORTED)
         
@@ -107,6 +115,38 @@ class MainActivity : AppCompatActivity() {
         unregisterReceiver(aValueReceiver)
         unregisterReceiver(elapsedTimeReceiver)
         unregisterReceiver(stopActionReceiver)
+        stopGpsUpdates()
+    }
+    
+    private fun startGpsUpdates() {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) 
+            == PackageManager.PERMISSION_GRANTED) {
+            
+            fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
+            
+            val locationRequest = LocationRequest.Builder(
+                Priority.PRIORITY_HIGH_ACCURACY,
+                1000L
+            ).build()
+            
+            locationCallback = object : LocationCallback() {
+                override fun onLocationResult(locationResult: LocationResult) {
+                    // A pozíció elérhető, a service majd használja
+                }
+            }
+            
+            fusedLocationClient.requestLocationUpdates(
+                locationRequest,
+                locationCallback,
+                Looper.getMainLooper()
+            )
+        }
+    }
+    
+    private fun stopGpsUpdates() {
+        if (::fusedLocationClient.isInitialized && ::locationCallback.isInitialized) {
+            fusedLocationClient.removeLocationUpdates(locationCallback)
+        }
     }
     
     private fun requestPermissions() {
