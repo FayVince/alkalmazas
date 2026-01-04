@@ -144,7 +144,7 @@ class MainActivity : AppCompatActivity() {
     }
     
     private fun stopGpsUpdates() {
-        if (::fusedLocationClient.isInitialized) {
+        if (::fusedLocationClient.isInitialized && ::locationCallback.isInitialized) {
             fusedLocationClient.removeLocationUpdates(locationCallback)
         }
     }
