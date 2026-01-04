@@ -42,4 +42,9 @@
     <string name="measurement_in_progress">Mérés folyamatban</string>
     <string name="elapsed_time_notif">Mérés ideje: %s</string>
     <string name="stop">Leállítás</string>
+    <string name="connect">Csatlakozás</string>
+    <string name="select_bluetooth_device">Bluetooth eszköz kiválasztása</string>
+    <string name="scanning">Keresés...</string>
+    <string name="no_devices_found">Nem található eszköz</string>
+    <string name="bluetooth_disabled">Bluetooth kikapcsolva</string>
 </resources>

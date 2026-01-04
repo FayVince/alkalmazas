@@ -28,11 +28,16 @@ class BleRepository(private val context: Context) {
     private val CHARACTERISTIC_UUID = UUID.fromString("0000ffe1-0000-1000-8000-00805f9b34fb")
     private val DESCRIPTOR_UUID = UUID.fromString("00002902-0000-1000-8000-00805f9b34fb")
     
+    private var scanCallback: ScanCallback? = null
+    
     @SuppressLint("MissingPermission")
     fun startScan(onDeviceFound: (BluetoothDevice) -> Unit) {
         val scanner = bluetoothAdapter?.bluetoothLeScanner
         
-        val scanCallback = object : ScanCallback() {
+        // Stop any previous scan
+        stopScan()
+        
+        scanCallback = object : ScanCallback() {
             override fun onScanResult(callbackType: Int, result: ScanResult?) {
                 result?.device?.let { device ->
                     onDeviceFound(device)
@@ -45,6 +50,15 @@ class BleRepository(private val context: Context) {
         }
         
         scanner?.startScan(scanCallback)
+    }
+    
+    @SuppressLint("MissingPermission")
+    fun stopScan() {
+        val scanner = bluetoothAdapter?.bluetoothLeScanner
+        scanCallback?.let {
+            scanner?.stopScan(it)
+        }
+        scanCallback = null
     }
     
     @SuppressLint("MissingPermission")
@@ -103,6 +117,10 @@ class BleRepository(private val context: Context) {
         bluetoothGatt?.close()
         bluetoothGatt = null
         _connectionState.value = ConnectionState.DISCONNECTED
+    }
+    
+    fun isBluetoothEnabled(): Boolean {
+        return bluetoothAdapter?.isEnabled == true
     }
     
     enum class ConnectionState {
