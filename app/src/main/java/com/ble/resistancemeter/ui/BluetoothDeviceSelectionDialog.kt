@@ -53,7 +53,6 @@ class BluetoothDeviceSelectionDialog(
         
         val builder = AlertDialog.Builder(context)
         builder.setTitle(R.string.select_bluetooth_device)
-        builder.setMessage(R.string.scanning)
         builder.setAdapter(adapter) { _, position ->
             val device = discoveredDevices[position]
             bleRepository.stopScan()
@@ -75,18 +74,13 @@ class BluetoothDeviceSelectionDialog(
             if (!discoveredDevices.any { it.address == device.address }) {
                 discoveredDevices.add(device)
                 adapter?.notifyDataSetChanged()
-                
-                // Update dialog message if we found devices
-                if (discoveredDevices.isNotEmpty() && dialog?.isShowing == true) {
-                    (dialog as? AlertDialog)?.setMessage(null)
-                }
             }
         }
         
         // Set a timeout message if no devices found after some time
         android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
             if (discoveredDevices.isEmpty() && dialog?.isShowing == true) {
-                (dialog as? AlertDialog)?.setMessage(context.getString(R.string.no_devices_found))
+                dialog?.setTitle(context.getString(R.string.no_devices_found))
             }
         }, 5000)
     }

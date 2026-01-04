@@ -104,7 +104,7 @@ class MeasurementService : Service() {
         }
     }
     
-    override fun onCreate() {
+     override fun onCreate() {
         super.onCreate()
         
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
@@ -122,6 +122,7 @@ class MeasurementService : Service() {
             ACTION_START_DEMO -> startDemoGeneration()
             ACTION_STOP_DEMO -> stopDemoGeneration()
             ACTION_UPDATE_PARAMS -> updateParameters(intent)
+            ACTION_STOP_FROM_NOTIFICATION -> stopMeasurement()
             ACTION_BLE_DATA -> {
                 val rawValue = intent.getIntExtra(EXTRA_RAW_VALUE, 0)
                 onBleMeasurement(rawValue)
@@ -289,10 +290,10 @@ class MeasurementService : Service() {
             return
         }
         
-        val locationRequest = LocationRequest.Builder(
-            Priority.PRIORITY_HIGH_ACCURACY,
-            1000L
-        ).build()
+        val locationRequest = LocationRequest.Builder(1000L).apply {
+            setPriority(Priority.PRIORITY_HIGH_ACCURACY)
+            setWaitForAccurateLocation(false)
+        }.build()
         
         fusedLocationClient.requestLocationUpdates(
             locationRequest,
@@ -369,10 +370,11 @@ class MeasurementService : Service() {
             PendingIntent.FLAG_UPDATE_CURRENT or flag
         )
 
-        val stopIntent = Intent(ACTION_STOP_FROM_NOTIFICATION)
-        stopIntent.setPackage(packageName)
+        val stopIntent = Intent(this, MeasurementService::class.java).apply {
+            action = ACTION_STOP_FROM_NOTIFICATION
+        }
 
-        val stopPendingIntent = PendingIntent.getBroadcast(
+        val stopPendingIntent = PendingIntent.getService(
             this,
             1,
             stopIntent,
@@ -384,9 +386,9 @@ class MeasurementService : Service() {
         return NotificationCompat.Builder(this, CHANNEL_ID)
             .setContentTitle(title)
             .setContentText(getString(R.string.elapsed_time_notif, timeString))
-            .setSmallIcon(R.drawable.ic_launcher_foreground)
+            .setSmallIcon(R.drawable.ic_stat_name)
             .setContentIntent(contentPendingIntent)
-            .addAction(R.drawable.ic_launcher_foreground, getString(R.string.stop), stopPendingIntent)
+            .addAction(R.drawable.ic_stat_name, getString(R.string.stop), stopPendingIntent)
             .setOngoing(true)
             .build()
     }
