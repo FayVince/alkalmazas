@@ -260,10 +260,25 @@ class MeasurementViewModel(application: Application) : AndroidViewModel(applicat
 
         try {
             FileWriter(csvFile).use { writer ->
-                writer.append("timestamp,value,latitude,longitude\n")
+                writer.append("time,value,latitude,longitude\n")
+
+                val inputFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.getDefault())
+                val outputFormat = SimpleDateFormat("HH:mm:ss", Locale.getDefault())
 
                 measurementData.measurements.forEach { measurement ->
-                    writer.append("${measurement.timestamp},${measurement.value},${measurement.latitude},${measurement.longitude}\n")
+                    var timeOnly = measurement.timestamp
+                    try {
+                        val cleanedTimestamp = measurement.timestamp.replace(" ", "")
+                        val date = inputFormat.parse(cleanedTimestamp)
+                        if (date != null) {
+                            timeOnly = outputFormat.format(date)
+                        }
+                    } catch (e: Exception) {
+                        if (measurement.timestamp.contains("T")) {
+                            timeOnly = measurement.timestamp.substringAfter("T").trim()
+                        }
+                    }
+                    writer.append("$timeOnly,${measurement.value},${measurement.latitude},${measurement.longitude}\n")
                 }
             }
             return csvFile

@@ -14,7 +14,7 @@ import android.os.Environment
 import android.os.Handler
 import android.os.IBinder
 import android.os.Looper
-import androidx.core.app. ActivityCompat
+import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import com.ble.resistancemeter.R
 import com.ble.resistancemeter.data.Measurement
@@ -252,7 +252,7 @@ class MeasurementService :  Service() {
             .apply()
 
         if (paramsChanged) {
-            val timestamp = SimpleDateFormat("yyyy-MM-dd'T'HH: mm:ss", Locale.getDefault()).format(Date())
+            val timestamp = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.getDefault()).format(Date())
             val paramChange = ParameterChange(timestamp, nValue, B = bValue)
             measurementData?.parameterChanges?.add(paramChange)
             parameterChanges.add(paramChange)
@@ -347,7 +347,7 @@ class MeasurementService :  Service() {
         if (lastKnownNonZeroLocation == null) return
 
         val aValue = calculateMovingAverage()
-        val timestamp = SimpleDateFormat("yyyy-MM-dd'T'HH:mm: ss", Locale. getDefault()).format(Date())
+        val timestamp = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale. getDefault()).format(Date())
 
         val location = lastKnownNonZeroLocation!!
         val measurement = Measurement(timestamp, aValue, location.latitude, location.longitude)
