@@ -47,6 +47,7 @@ class MeasurementService :  Service() {
         const val ACTION_STOP_DEMO = "com. ble.resistancemeter.action. STOP_DEMO"
         const val ACTION_STOP_FROM_NOTIFICATION = "com. ble.resistancemeter.action. STOP_FROM_NOTIFICATION"
         const val ACTION_GPS_STATUS = "com. ble.resistancemeter.action.GPS_STATUS"
+        const val ACTION_NEW_MEASUREMENT = "com.ble.resistancemeter.action.NEW_MEASUREMENT"
 
         const val EXTRA_N = "extra_n"
         const val EXTRA_B = "extra_b"
@@ -58,10 +59,12 @@ class MeasurementService :  Service() {
         private val measurements = mutableListOf<Measurement>()
         private val parameterChanges = mutableListOf<ParameterChange>()
         private var startTime:  String = ""
+        private var isServiceRunning = false
 
         fun getMeasurements(): List<Measurement> = measurements
         fun getParameterChanges(): List<ParameterChange> = parameterChanges
         fun getStartTime(): String = startTime
+        fun isRunning(): Boolean = isServiceRunning
     }
 
     private lateinit var fusedLocationClient: FusedLocationProviderClient
@@ -143,6 +146,7 @@ class MeasurementService :  Service() {
         updateHandler.removeCallbacks(notificationUpdateRunnable)
         saveHandler. removeCallbacks(saveMeasurementRunnable)
         stopDemoGeneration()
+        isServiceRunning = false
     }
 
     private fun createNotificationChannel() {
@@ -195,6 +199,7 @@ class MeasurementService :  Service() {
         parameterChanges. clear()
         startTime = ""
         lastKnownNonZeroLocation = null
+        isServiceRunning = true
 
         createSessionFile()
         startLocationUpdates()
@@ -218,6 +223,7 @@ class MeasurementService :  Service() {
         updateHandler.removeCallbacks(notificationUpdateRunnable)
         saveHandler.removeCallbacks(saveMeasurementRunnable)
         stopDemoGeneration()
+        isServiceRunning = false
 
         if (Build.VERSION. SDK_INT >= Build.VERSION_CODES.N) {
             stopForeground(STOP_FOREGROUND_REMOVE)
@@ -355,6 +361,10 @@ class MeasurementService :  Service() {
         measurementData?.measurements?. add(measurement)
         measurements.add(measurement)
         flushSessionFile()
+
+        val intent = Intent(ACTION_NEW_MEASUREMENT)
+        intent.setPackage(packageName)
+        sendBroadcast(intent)
     }
 
     private fun buildNotification(): android.app.Notification {

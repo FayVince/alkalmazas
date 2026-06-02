@@ -50,4 +50,5 @@
     <string name="scanning">Scanning...</string>
     <string name="no_devices_found">No devices found</string>
     <string name="bluetooth_disabled">Bluetooth is disabled</string>
+    <string name="live_measurement">Live Measurement</string>
 </resources>

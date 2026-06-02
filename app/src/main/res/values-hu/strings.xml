@@ -47,4 +47,5 @@
     <string name="scanning">Keresés...</string>
     <string name="no_devices_found">Nem található eszköz</string>
     <string name="bluetooth_disabled">Bluetooth kikapcsolva</string>
+    <string name="live_measurement">Élő mérés</string>
 </resources>
